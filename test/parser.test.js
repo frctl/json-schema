@@ -3,9 +3,15 @@ const expect = require('@frctl/utils/test').expect;
 
 const Parser = require('../src');
 
-const baseSchema = {
-  $schema: 'http://json-schema.org/schema#',
-  type: 'object'
+const baseSchema = id => {
+  let schema = {
+    $schema: 'http://json-schema.org/schema#'
+  };
+  if (id) {
+    schema.id = id;
+  }
+  schema.type = 'object';
+  return schema;
 };
 
 describe('Parser', function () {
@@ -61,28 +67,23 @@ describe('Parser', function () {
 
     it(`returns an already qualified Schema unmodified`, function () {
       const parser = new Parser();
-      const result = parser.parse(baseSchema);
-      expect(result).to.deep.equal(baseSchema);
+      let base = baseSchema();
+      const result = parser.parse(base);
+      expect(result).to.deep.equal(base);
     });
 
     it(`returns a valid but empty Schema, if provided with a valid but empty argument`, function () {
-      for (const value of [
-          [], {}
-      ]) {
+      for (const value of [[], {}]) {
         const parser = new Parser();
         const result = parser.parse(value);
-        expect(JSON.stringify(result)).to.equal(JSON.stringify(baseSchema));
+        expect(JSON.stringify(result)).to.equal(JSON.stringify(baseSchema()));
       }
     });
 
     it(`assigns 'id' correctly`, function () {
-      for (const value of [
-          [], {}
-      ]) {
+      for (const value of [[], {}]) {
         const parser = new Parser();
-        const expanded = Object.assign({}, baseSchema, {
-          id: '@component'
-        });
+        const expanded = baseSchema('@component');
         const result = parser.parse(value, '@component');
         expect(JSON.stringify(result)).to.equal(JSON.stringify(expanded));
       }
@@ -92,8 +93,7 @@ describe('Parser', function () {
       const parser = new Parser();
 
       const shorthand = ['title', 'text'];
-      const expanded = Object.assign({}, baseSchema, {
-        id: '@component',
+      const expanded = Object.assign({}, baseSchema('@component'), {
         properties: {
           title: {
             type: 'string'
@@ -115,8 +115,7 @@ describe('Parser', function () {
         title: 'string',
         disabled: 'boolean'
       };
-      const expanded = Object.assign({}, baseSchema, {
-        id: '@component',
+      const expanded = Object.assign({}, baseSchema('@component'), {
         properties: {
           title: {
             type: 'string'
