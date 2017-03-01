@@ -25,10 +25,11 @@
     "release": "np"
   },
   "dependencies": {
-    "@frctl/utils": "^0.4.2",
+    "@frctl/utils": "^0.4.2"
   },
   "devDependencies": {
     "@frctl/eslint-config-frctl": "^0.1.0",
+    "check-types": "^7.1.5",
     "jsdoc": "^3.4.3",
     "mocha": "^3.2.0",
     "np": "^2.12.0",
