@@ -47,18 +47,23 @@ class Parser {
     if (check.emptyArray(shorthand)) {
       return schema;
     }
+
     schema.properties = expandPropertyArray(shorthand);
     return schema;
   }
 }
 
+function expandProperty(key, type = 'string') {
+  return {
+    [key]: {
+      type: type
+    }
+  };
+}
+
 function expandPropertyArray(array) {
   return array
-    .map(key => ({
-      [key]: {
-        type: 'string'
-      }
-    }))
+    .map(key => expandProperty(key))
     .reduce((memo, value) => {
       return Object.assign({}, memo, value);
     }, {});
