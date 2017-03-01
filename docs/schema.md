@@ -238,11 +238,25 @@ JS shorthand:
 }
 ```
 
-QUESTION: should a convention be able to define a ref, similar to
+QUESTION 1: should a convention be able to define a ref, similar to
 https://metacpan.org/pod/JSON::Schema::Shorthand?
 i.e.
 ```js
 {
   pill: '#/units/pill'
 }
+```
+
+QUESTION 2: should the array extreme shorthand *only* accept strings, or should we allow objects as values too (similar to the original proposal)
+https://metacpan.org/pod/JSON::Schema::Shorthand?
+i.e.
+```js
+['modifier', 'label']
+```
+and
+```
+[
+  'modifier',
+  { 'label': 'boolean'}
+]
 ```
