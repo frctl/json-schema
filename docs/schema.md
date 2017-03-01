@@ -51,14 +51,16 @@ JSON schema:
   }
 }
 ```
-1. A top-level array is assumed to define a component object spec, and so is assigned a `$schema` value and an `id` property based on the component path.
-2. Arrays of values are assumed to be a list of object `properties`.
-1. By default, each array string item `[value]` is mapped to `"[value]": { "type": "string" }`,
 
-This enabling the following JS shorthand:
+JS shorthand:
 ```js
 ['modifier', 'text']
 ```
+1. A top-level array consisting of only strings in the form `[ 'value', 'value' ]` is assumed to define a simple component object schema, and so is assigned a `$schema` value and an `id` property based on the component path.
+2. Each `'value'` is assumed to be a property name on `"properties"`.
+1. Each `'value'` is mapped to `"value": { "type": "string" }`
+
+
 
 ### Button component
 Template:
@@ -109,25 +111,29 @@ JSON schema:
   }
 }
 ```
-1. If an array item is an `object`, with a `[key]:[value]` pair:
-   1. if `[value]` is a `string`, `[key]:[value]` is mapped to `"[key]": { "type": "[value]" }`,
-   1. if `[value]` is an `object`, `[key]:[value]` is mapped to `"[key]": [value]`. If the `type` property is absent from `[value]`, `string` is inferred.
-1. Any properties that match top-level JSON Schema `object` properties are bubbled up.
 
-This results in the following JS shorthand:
+JS shorthand:
 ```js
-[
-  'tag',
-  'href',
-  { 'disabled': 'boolean' }, // 1.1.
-  'modifiers',
-  'iconName',
-  { 'iconClasses': { dependencies: 'iconName' }}, // 1.2., 2.
-  { 'text': { required: true }} // 1.2., 2.
-]
-
-
+{
+  tag: 'string',
+  href: 'string',
+  disabled: 'boolean',
+  modifiers: 'string',
+  iconName: 'string',
+  iconClasses: { dependencies: 'iconName' }},
+  text: { required: true }}
+}
 ```
+
+More complex Schemas may be represented as an object.
+
+1. A top-level object is assumed to define a component object schema, and so is assigned a `$schema` value and an `id` property based on the component path.
+1. Each `'property': value` pair is assumed to represent an item on `"properties"`.
+   1. if `value` is a `string`, `'property': 'value'` is mapped to `"property": { "type": "value" }`,
+   1. if `value` is an `object`, `'property': value` is mapped to `"property": value`. If the `'type'` property is absent from `value`, `"string"` is inferred.
+1. Any properties that match top-level JSON Schema object properties, such as `dependencies`, are bubbled up.
+
+
 
 ### List component
 Template:
@@ -155,23 +161,23 @@ JSON schema:
   "required": ["title"]
 }
 ```
-If an array item is an `object`, with a `[key]:[value]` pair:
-1. And `[value]` equals `'array'`, then `[key]:[value]` is mapped to `"[key]": { "type": "array", "items": { "type": "string" } }`.
-2. And `[value]` is an `object` with a single `[key1]` of `'array'` and `[value1]` is a string, then `[key]:[value]` is mapped to `"[key]": { "type": "array", "items": { "type": "[value1]" } }`.
-
-This enables the following JS Shorthand:
+JS Shorthand:
 ```js
-[
-  'type',
-  { 'listItems': 'array' } // 1.
-  // or { 'listItems': { 'array': 'string' } } : 2.
-]
+{
+  type: 'string',
+  listItems: { 'array': 'string' }
+  // or listItems: 'array'  if you don't need item types
+}
 ```
+Given a `'property': value` pair:
+1. If `value` equals `'array'`, then `'property': 'value'` is mapped to `"property": { "type": "array" }`, as previously described.
+2. If `value` is an `object` in the form `{ 'property1': value1 }`, `'property1'` equals `'array'`, and `value1` is a string, then `'property': value` is mapped to `"property": { "type": "array", "items": { "type": "value1" } }`.
+
+
 
 ### Badge component
 Template:
 ```handlebars
-
 <figure class="badge{{#if modifiers}} {{ modifiers }}{{/if}}">
     {{#if img}}<img class="badge__image {{img.modifiers}}" src="{{img.src}}" alt="{{img.alt}}">{{/if}}
     <figcaption class="badge__caption">
@@ -215,17 +221,28 @@ JSON schema:
   "required": ["title"]
 }
 ```
+1. Refs are defined in the same way as a standard Schema.
+2. Objects are be defined in the same ways as described above.
 
 JS shorthand:
 ```js
-[
-  'modifier',
-  { 'pill': { '$ref': '/units/pill'} },
-  { 'img': [
+{
+  modifier: 'string',
+  pill: { '$ref': '/units/pill'},
+  img: [
     'modifiers',
     'src',
     'alt'
-  ]},
-  { 'title': { required: true } }
-]
+  ],
+  title: { required: true }
+}
+```
+
+QUESTION: should a convention be able to define a ref, similar to
+https://metacpan.org/pod/JSON::Schema::Shorthand?
+i.e.
+```js
+{
+  pill: '#/units/pill'
+}
 ```
