@@ -51,18 +51,19 @@ JSON schema:
   }
 }
 ```
+1. A top-level array is assumed to define a component object spec, and so is assigned a `$schema` value and an `id` property based on the component path.
+2. Arrays of values are assumed to be a list of object `properties`.
+1. By default, each array string item `[value]` is mapped to `"[value]": { "type": "string" }`,
 
-JS shorthand:
+This enabling the following JS shorthand:
 ```js
-// By default, each array string item 'value' is mapped to "value": { "type": "string" }
-
 ['modifier', 'text']
 ```
 
 ### Button component
 Template:
 ```handlebars
-<a class="action{{#if modifiers }} {{ modifiers }}{{/if}}" href="{{#if href}}{{href}}{{else}}#{{/if}}" {{#if disabled}}disabled{{/if}}>
+<a class="action{{#if modifiers }} {{ modifiers }}{{/if}}" href="{{href}}" {{#if disabled}}disabled{{/if}}>
 	<span class="action__inner">
   	<span class="action__text">{{{ text }}}</span>
     {{#if iconName}}
@@ -102,29 +103,27 @@ JSON schema:
       "type": "string"
     }
   },
-  "required": ["text"],
+  "required": ["text", "href"],
   "dependencies": {
     "iconClasses": ["iconName"]
   }
 }
 ```
+1. If an array item is an `object`, with a `[key]:[value]` pair:
+   1. if `[value]` is a `string`, `[key]:[value]` is mapped to `"[key]": { "type": "[value]" }`,
+   1. if `[value]` is an `object`, `[key]:[value]` is mapped to `"[key]": [value]`. If the `type` property is absent from `[value]`, `string` is inferred.
+1. Any properties that match top-level JSON Schema `object` properties are bubbled up.
 
-JS shorthand:
+This results in the following JS shorthand:
 ```js
 [
   'tag',
   'href',
-  // If an array item is an object, then the object's
-  // 'key': 'value' is mapped to "key": { "type": "value" }
-  // if 'value' is also a string.
-  { 'disabled': 'boolean' },
+  { 'disabled': 'boolean' }, // 1.1.
   'modifiers',
   'iconName',
-  // If an array item is an object, then the object's 
-  // 'key': 'value' is mapped to "key": value
-  // if 'value' is an object. If the 'type' if missing, "string" is inferred. Any properties that match top-level JSON Schema 'object' properties are bubbled up.
-  { 'iconClasses': { dependencies: 'iconName' }},
-  { 'text': { required: true }}
+  { 'iconClasses': { dependencies: 'iconName' }}, // 1.2., 2.
+  { 'text': { required: true }} // 1.2., 2.
 ]
 
 
@@ -133,7 +132,7 @@ JS shorthand:
 ### List component
 Template:
 ```handlebars
-<ul class="list{{#if modifiers }} {{ modifiers }}{{/if}}">
+<ul class="list">
 {{#each listItems}}
   <li class="List-item">{{this}}</li>
 {{/each}}
@@ -146,9 +145,6 @@ JSON schema:
   "id": "/patterns/badge",
   "type": "object",
   "properties": {
-    "modifiers": {
-      "type": "string"
-    },
     "listItems": {
       "type": "array",
       "items": {
@@ -159,26 +155,28 @@ JSON schema:
   "required": ["title"]
 }
 ```
+If an array item is an `object`, with a `[key]:[value]` pair:
+1. And `[value]` equals `'array'`, then `[key]:[value]` is mapped to `"[key]": { "type": "array", "items": { "type": "string" } }`.
+2. And `[value]` is an `object` with a single `[key1]` of `'array'` and `[value1]` is a string, then `[key]:[value]` is mapped to `"[key]": { "type": "array", "items": { "type": "[value1]" } }`.
 
-JS Shorthand:
+This enables the following JS Shorthand:
 ```js
 [
   'type',
-  { 'listItems': 'array' } // By default, array of strings
-  // or { 'listItems': { 'array': 'string' } }
+  { 'listItems': 'array' } // 1.
+  // or { 'listItems': { 'array': 'string' } } : 2.
 ]
 ```
 
 ### Badge component
 Template:
 ```handlebars
+
 <figure class="badge{{#if modifiers}} {{ modifiers }}{{/if}}">
-    <img class="badge__image" src="{{imgSrc}}" alt="Profile">
+    {{#if img}}<img class="badge__image {{img.modifiers}}" src="{{img.src}}" alt="{{img.alt}}">{{/if}}
     <figcaption class="badge__caption">
-    	{{#if quote}}<blockquote class="badge__quote">{{quote}}</blockquote>{{/if}}
         {{#if pill}}{{> @pill pill}}{{/if}}
-        <h1 class="badge__label">{{#if url}}<a href="{{url}}">{{/if}}{{ title }}{{#if url}}</a>{{/if}}</h1>
-        {{#if subTitle}}<h2 class="badge__subLabel">{{{subTitle}}}</h2>{{/if}}
+        <h1 class="badge__label">{{ title }}</h1>        
     </figcaption>
 </figure>
 ```
@@ -193,24 +191,26 @@ JSON schema:
     "modifiers": {
       "type": "string"
     },
-    "imgSrc":{
-      "type":"string"
-    },
-    "quote": {
-      "type": "string"
+    "img": {
+      "type": "object",
+      "properties": {
+        "modifiers": {
+          "type": "string"
+        },
+        "src": {
+          "type": "string"
+        },
+        "alt": {
+          "type": "string"
+        }
+      }
     },
     "pill": {
       "$ref": "/units/pill"
     },
-    "url": {
-      "type": "string"
-    },
     "title": {
       "type": "string"
     },
-    "subTitle": {
-      "type": "string"
-    }
   },
   "required": ["title"]
 }
@@ -220,9 +220,12 @@ JS shorthand:
 ```js
 [
   'modifier',
-  'quote',
   { 'pill': { '$ref': '/units/pill'} },
-  'url',
+  { 'img': [
+    'modifiers',
+    'src',
+    'alt'
+  ]},
   { 'title': { required: true } }
 ]
 ```
