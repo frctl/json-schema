@@ -39,6 +39,20 @@ describe('Parser', function () {
         expect(fr(value)).to.not.throw();
       }
     });
+    it(`only accepts valid id arguments`, function () {
+      const fr = value => {
+        return () => {
+          const parser = new Parser();
+          parser.parse({}, value);
+        };
+      };
+      for (const value of [{}, 123]) {
+        expect(fr(value)).to.throw(TypeError, `[id-invalid]`);
+      }
+      for (const value of ['id1', 'id2']) {
+        expect(fr(value)).to.not.throw();
+      }
+    });
     it(`returns an already qualified Schema unmodified`, function () {
       const parser = new Parser();
       const result = parser.parse(baseSchema);
@@ -51,13 +65,22 @@ describe('Parser', function () {
         expect(JSON.stringify(result)).to.equal(JSON.stringify(baseSchema));
       }
     });
+    it(`assigns 'id' correctly`, function () {
+      for (const value of [[], {}]) {
+        const parser = new Parser();
+        const expanded = Object.assign({}, baseSchema, {
+          id: '@component'
+        });
+        const result = parser.parse(value, '@component');
+        expect(JSON.stringify(result)).to.equal(JSON.stringify(expanded));
+      }
+    });
     it(`successfully expands array shorthand notation`, function () {
       const parser = new Parser();
 
       const shorthand = ['title', 'text'];
-      const expanded = {
-        $schema: 'http://json-schema.org/schema#',
-        type: 'object',
+      const expanded = Object.assign({}, baseSchema, {
+        id: '@component',
         properties: {
           title: {
             type: 'string'
@@ -66,9 +89,9 @@ describe('Parser', function () {
             type: 'string'
           }
         }
-      };
+      });
 
-      const result = parser.parse(shorthand);
+      const result = parser.parse(shorthand, '@component');
       expect(JSON.stringify(result)).to.equal(JSON.stringify(expanded));
     });
   });
