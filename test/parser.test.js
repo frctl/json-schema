@@ -32,13 +32,18 @@ describe('Parser', function () {
       for (const value of ['string', 123]) {
         expect(fr(value)).to.throw(TypeError, `[shorthand-invalid]`);
       }
-      for (const value of [['string', 123]]) {
+      for (const value of [
+          ['string', 123]
+      ]) {
         expect(fr(value)).to.throw(TypeError, `[shorthand-array-invalid]`);
       }
-      for (const value of [{}, ['string1']]) {
+      for (const value of [{},
+          ['string1']
+      ]) {
         expect(fr(value)).to.not.throw();
       }
     });
+
     it(`only accepts valid id arguments`, function () {
       const fr = value => {
         return () => {
@@ -53,20 +58,27 @@ describe('Parser', function () {
         expect(fr(value)).to.not.throw();
       }
     });
+
     it(`returns an already qualified Schema unmodified`, function () {
       const parser = new Parser();
       const result = parser.parse(baseSchema);
       expect(result).to.deep.equal(baseSchema);
     });
+
     it(`returns a valid but empty Schema, if provided with a valid but empty argument`, function () {
-      for (const value of [[], {}]) {
+      for (const value of [
+          [], {}
+      ]) {
         const parser = new Parser();
         const result = parser.parse(value);
         expect(JSON.stringify(result)).to.equal(JSON.stringify(baseSchema));
       }
     });
+
     it(`assigns 'id' correctly`, function () {
-      for (const value of [[], {}]) {
+      for (const value of [
+          [], {}
+      ]) {
         const parser = new Parser();
         const expanded = Object.assign({}, baseSchema, {
           id: '@component'
@@ -75,6 +87,7 @@ describe('Parser', function () {
         expect(JSON.stringify(result)).to.equal(JSON.stringify(expanded));
       }
     });
+
     it(`successfully expands array shorthand notation`, function () {
       const parser = new Parser();
 
@@ -87,6 +100,29 @@ describe('Parser', function () {
           },
           text: {
             type: 'string'
+          }
+        }
+      });
+
+      const result = parser.parse(shorthand, '@component');
+      expect(JSON.stringify(result)).to.equal(JSON.stringify(expanded));
+    });
+
+    it(`successfully expands simple object shorthand notation`, function () {
+      const parser = new Parser();
+
+      const shorthand = {
+        title: 'string',
+        disabled: 'boolean'
+      };
+      const expanded = Object.assign({}, baseSchema, {
+        id: '@component',
+        properties: {
+          title: {
+            type: 'string'
+          },
+          disabled: {
+            type: 'boolean'
           }
         }
       });

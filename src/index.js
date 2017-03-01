@@ -42,6 +42,9 @@ class Parser {
     if (check.emptyObject(shorthand)) {
       return schema;
     }
+
+    schema.properties = expandPropertyObject(shorthand);
+    return schema;
   }
 
   parseArray(shorthand, id) {
@@ -64,6 +67,14 @@ function expandProperty(key, type = 'string') {
       type: type
     }
   };
+}
+
+function expandPropertyObject(object) {
+  return Object.keys(object)
+    .map(key => expandProperty(key, object[key]))
+    .reduce((memo, value) => {
+      return Object.assign({}, memo, value);
+    }, {});
 }
 
 function expandPropertyArray(array) {
