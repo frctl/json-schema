@@ -21,16 +21,14 @@ class Parser {
   }
 
   parse(shorthand) {
-    if (!(check.object(shorthand) || check.array(shorthand))) {
-      assert(false, `Parser.parse: shorthand must be an object or an array [shorthand-invalid]`, TypeError);
-    }
-
     if (check.object(shorthand)) {
       return this.parseObject(shorthand);
     }
     if (check.array(shorthand)) {
       return this.parseArray(shorthand);
     }
+
+    assert(false, `Parser.parse: shorthand must be an object or an array [shorthand-invalid]`, TypeError);
   }
 
   parseObject(shorthand) {
@@ -44,21 +42,26 @@ class Parser {
 
   parseArray(shorthand) {
     assert.array.of.string(shorthand, `Parser.parse: shorthand array must consist of strings only [shorthand-array-invalid]`);
-    if (check.emptyArray(shorthand)) {
-      return createBaseSchema();
-    }
     let schema = createBaseSchema();
 
-    schema.properties = shorthand
-      .map(key => ({[key]: {type: 'string'}}))
-      .reduce((memo, value) => {
-        return Object.assign({}, memo, value);
-      }, {});
-
-    console.log(schema);
-
+    if (check.emptyArray(shorthand)) {
+      return schema;
+    }
+    schema.properties = expandPropertyArray(shorthand);
     return schema;
   }
+}
+
+function expandPropertyArray(array) {
+  return array
+    .map(key => ({
+      [key]: {
+        type: 'string'
+      }
+    }))
+    .reduce((memo, value) => {
+      return Object.assign({}, memo, value);
+    }, {});
 }
 
 function createBaseSchema() {
