@@ -1,36 +1,23 @@
 /* eslint-disable no-warning-comments */
-const check = require('check-types');
+// const check = require('check-types');
 
 let tokens = new WeakMap();
 
 class Expander {
 
-  constructor() {
-    let tkns = [];
-    tkns.push({
-      match: function (type) {
-        return /^string$|^boolean$|^object$/.test(type);
-      },
-      expand: this.defaultExpansion
-    });
-    tkns.push({
-      match: function (type) {
-        return check.array(type);
-      },
-      expand: this.arrayExpansion.bind(this)
-    });
-    tkns.push({
-      match: function (type) {
-        return check.object(type);
-      },
-      expand: this.objectExpansion.bind(this)
-    });
-    this.addTokens(tkns);
+  constructor(opts = {}) {
+    tokens.set(this, []);
+
+    if (opts.tokens) {
+      this.addTokens(opts.tokens);
+    }
   }
 
   addTokens(token) {
     // TODO: error handling
-    tokens.set(this, (tokens.get(this) || []).concat([].concat(token)));
+    let boundPropertyExpander = this.expandPropertyObject.bind(this);
+    let localTokens = [].concat(token).map(token => token(boundPropertyExpander));
+    tokens.set(this, tokens.get(this).concat(localTokens));
   }
 
   getExpansionForValue(value) {
@@ -59,37 +46,11 @@ class Expander {
       }, _memo);
   }
 
-  convertArrayToObject(array) {
-    return array
-      .map(property => ({
-        [property]: 'string'
-      }))
-      .reduce((memo, value) => (Object.assign(memo, value)), {});
-  }
-
   defaultExpansion(type) {
     return {
       type: type
     };
   }
-
-  objectExpansion(value) {
-    let expanded = {
-      type: 'object'
-    };
-    let props = this.expandPropertyObject(value, {});
-    if (!check.emptyObject(props)) {
-      expanded.properties = props;
-    }
-    return expanded;
-  }
-
-  arrayExpansion(value) {
-    return this.objectExpansion(this.convertArrayToObject(value));
-  }
-
 }
 
-module.exports = function (options) {
-  return new Expander(options);
-};
+module.exports = Expander;
