@@ -38,14 +38,10 @@ describe('Parser', function () {
       for (const value of ['string', 123]) {
         expect(fr(value)).to.throw(TypeError, `[shorthand-invalid]`);
       }
-      for (const value of [
-          ['string', 123]
-      ]) {
+      for (const value of [['string', 123]]) {
         expect(fr(value)).to.throw(TypeError, `[shorthand-array-invalid]`);
       }
-      for (const value of [{},
-          ['string1']
-      ]) {
+      for (const value of [{}, []]) {
         expect(fr(value)).to.not.throw();
       }
     });
@@ -122,6 +118,100 @@ describe('Parser', function () {
           },
           disabled: {
             type: 'boolean'
+          }
+        }
+      });
+
+      const result = parser.parse(shorthand, '@component');
+      expect(JSON.stringify(result)).to.equal(JSON.stringify(expanded));
+    });
+
+    it(`reverts to default type expander if unknown type is supplied`, function () {
+      const parser = new Parser();
+
+      const shorthand = {
+        title: 'unknown'
+      };
+      const expanded = Object.assign({}, baseSchema('@component'), {
+        properties: {
+          title: {
+            type: 'unknown'
+          }
+        }
+      });
+
+      const result = parser.parse(shorthand, '@component');
+      expect(JSON.stringify(result)).to.equal(JSON.stringify(expanded));
+    });
+
+    it(`successfully expands object with nested array shorthand notation`, function () {
+      const parser = new Parser();
+
+      const shorthand = {
+        title: 'string',
+        img: [
+          'modifiers',
+          'src',
+          'alt'
+        ]
+      };
+
+      const expanded = Object.assign({}, baseSchema('@component'), {
+        properties: {
+          title: {
+            type: 'string'
+          },
+          img: {
+            type: 'object',
+            properties: {
+              modifiers: {
+                type: 'string'
+              },
+              src: {
+                type: 'string'
+              },
+              alt: {
+                type: 'string'
+              }
+            }
+          }
+        }
+      });
+
+      const result = parser.parse(shorthand, '@component');
+      expect(JSON.stringify(result)).to.equal(JSON.stringify(expanded));
+    });
+
+    it(`successfully expands object with nested object shorthand notation`, function () {
+      const parser = new Parser();
+
+      const shorthand = {
+        title: 'string',
+        img: {
+          modifiers: 'string',
+          disabled: 'boolean',
+          alt: 'string'
+        }
+      };
+
+      const expanded = Object.assign({}, baseSchema('@component'), {
+        properties: {
+          title: {
+            type: 'string'
+          },
+          img: {
+            type: 'object',
+            properties: {
+              modifiers: {
+                type: 'string'
+              },
+              disabled: {
+                type: 'boolean'
+              },
+              alt: {
+                type: 'string'
+              }
+            }
           }
         }
       });

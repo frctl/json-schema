@@ -1,21 +1,14 @@
 /* eslint-disable no-warning-comments */
 const check = require('check-types');
+const expander = require('./expander')();
+// const objectExpansion = require('./tokens').objectExpansion;
+// const arrayExpansion = require('./tokens').arrayExpansion;
 
 const assert = check.assert;
 
 const schemaDuck = {
   $schema: 'http://json-schema.org/schema#'
 };
-
-const defaultObject = type => ({
-  type: type
-});
-
-let tokens = [];
-tokens.push({
-  match: '^string$|^boolean$|^object$',
-  expansion: defaultObject
-});
 
 /**
  * A Condensed JSON Schema Parser.
@@ -49,69 +42,16 @@ class Parser {
     if (check.like(shorthand, schemaDuck)) {
       return shorthand;
     }
-    let schema = Object.assign(createBaseSchema(id), createBaseObject());
 
-    if (check.emptyObject(shorthand)) {
-      return schema;
-    }
-
-    schema.properties = expandPropertyObject(shorthand, {});
-    return schema;
+    return Object.assign(createBaseSchema(id), expander.objectExpansion(shorthand));
   }
 
   parseArray(shorthand, id) {
     assert.maybe.string(id, `Parser.parse: 'id' must be a string [id-invalid]`);
     assert.array.of.string(shorthand, `Parser.parse: 'shorthand' array must consist of strings only [shorthand-array-invalid]`);
 
-    if (check.emptyArray(shorthand)) {
-      return Object.assign(createBaseSchema(id), createBaseObject());
-    }
-    return this.parseObject(expandArrayToObject(shorthand), id);
+    return Object.assign(createBaseSchema(id), expander.arrayExpansion(shorthand));
   }
-}
-
-function getObjectForType(type) {
-  let expansion;
-  let token = tokens
-    .filter(token => new RegExp(token.match).test(type))
-    .reduce((m, value) => value, {});
-
-  expansion = token.expansion;
-
-  if (!expansion) {
-    expansion = defaultObject;
-    // TODO: warn that token not found
-  }
-
-  return expansion(type);
-}
-
-function expandProperty(key, type = 'string') {
-  return {
-    [key]: getObjectForType(type)
-  };
-}
-
-function expandPropertyObject(object, _memo) {
-  return Object.keys(object)
-    .map(key => expandProperty(key, object[key]))
-    .reduce((memo, value) => {
-      return Object.assign({}, memo, value);
-    }, _memo);
-}
-
-function expandArrayToObject(array) {
-  return array
-    .map(property => ({
-      [property]: 'string'
-    }))
-    .reduce((memo, value) => (Object.assign(memo, value)), {});
-}
-
-function createBaseObject() {
-  return {
-    type: 'object'
-  };
 }
 
 function createBaseSchema(id) {
