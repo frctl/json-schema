@@ -33,21 +33,21 @@ class Expander {
     tokens.set(this, (tokens.get(this) || []).concat([].concat(token)));
   }
 
-  getExpansionForType(type) {
+  getExpansionForValue(value) {
     let expansion = tokens.get(this)
-      .filter(token => token.match(type))
+      .filter(token => token.match(value))
       .map(token => token.expand)
       .reduce((m, value) => value, '');
 
     expansion = expansion || this.defaultExpansion;
     // TODO: warn if token not found
 
-    return expansion(type);
+    return expansion(value);
   }
 
   expandSingleProperty(key, value = 'string') {
     return {
-      [key]: this.getExpansionForType(value)
+      [key]: this.getExpansionForValue(value)
     };
   }
 

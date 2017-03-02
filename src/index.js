@@ -1,8 +1,6 @@
 /* eslint-disable no-warning-comments */
 const check = require('check-types');
 const expander = require('./expander')();
-// const objectExpansion = require('./tokens').objectExpansion;
-// const arrayExpansion = require('./tokens').arrayExpansion;
 
 const assert = check.assert;
 
