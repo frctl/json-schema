@@ -1,19 +1,13 @@
 const check = require('check-types');
+const _ = require('lodash');
 
-module.exports = function (expandPropertyObject) {
+module.exports = function objectToken(expandObject) {
   return {
     match: function match(type) {
       return check.object(type);
     },
     expand: function objectExpansion(value) {
-      let expanded = {
-        type: 'object'
-      };
-      let props = expandPropertyObject(value, {});
-      if (!check.emptyObject(props)) {
-        expanded.properties = props;
-      }
-      return expanded;
+      return expandObject(value, {});
     }
   };
 };

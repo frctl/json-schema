@@ -9,7 +9,7 @@ function convertArrayToObject(array) {
     .reduce((memo, value) => (Object.assign(memo, value)), {});
 }
 
-module.exports = function (expandPropertyObject) {
+module.exports = function arrayToken(expandPropertyObject) {
   return {
     match: function match(type) {
       return check.array(type);

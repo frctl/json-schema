@@ -9,16 +9,7 @@ const basicConfig = {
   expander: basicExpander
 };
 
-const baseSchema = id => {
-  let schema = {
-    $schema: 'http://json-schema.org/schema#'
-  };
-  if (id) {
-    schema.id = id;
-  }
-  schema.type = 'object';
-  return schema;
-};
+const {baseSchema} = require('./support/utils');
 
 describe('Parser', function () {
   describe('constructor()', function () {
@@ -47,22 +38,22 @@ describe('Parser', function () {
       for (const value of [['string', 123]]) {
         expect(fr(value)).to.throw(TypeError, `[shorthand-array-invalid]`);
       }
-      for (const value of [{}]) {
+      for (const value of [{}, ['one', 'two']]) {
         expect(fr(value)).to.not.throw();
       }
     });
 
-    it(`only accepts valid id arguments`, function () {
+    it(`only accepts valid base arguments`, function () {
       const fr = value => {
         return () => {
           const parser = new Parser(basicConfig);
           parser.parse({}, value);
         };
       };
-      for (const value of [{}, 123]) {
-        expect(fr(value)).to.throw(TypeError, `[id-invalid]`);
+      for (const value of ['value', 123]) {
+        expect(fr(value)).to.throw(TypeError, `[base-invalid]`);
       }
-      for (const value of ['id1', 'id2']) {
+      for (const value of [{}, {id: 'value'}]) {
         expect(fr(value)).to.not.throw();
       }
     });
@@ -88,10 +79,21 @@ describe('Parser', function () {
     it(`assigns 'id' correctly`, function () {
       for (const value of [[], {}]) {
         const parser = new Parser(basicConfig);
-        const expanded = baseSchema('@component');
-        const result = parser.parse(value, '@component');
+        const expanded = baseSchema({id: '@component'});
+        const result = parser.parse(value, {id: '@component'});
         expect(result).to.be.an('object');
         expect(result.id).to.equal(expanded.id);
+      }
+    });
+
+    it(`assigns '$schema' correctly`, function () {
+      for (const value of [[], {}]) {
+        const parser = new Parser(basicConfig);
+        const expanded = baseSchema();
+        expanded.$schema = 'http://json-schema.org/hyper-schema#';
+        const result = parser.parse(value, {$schema: 'http://json-schema.org/hyper-schema#'});
+        expect(result).to.be.an('object');
+        expect(result.$schema).to.equal(expanded.$schema);
       }
     });
   });

@@ -17,7 +17,7 @@
     "access": "public"
   },
   "scripts": {
-    "test": "xo && nyc npm run test:unit",
+    "test": "xo --fix && xo && nyc npm run test:unit",
     "test:unit": "mocha \"test/*.test.js\" --require test/support/env",
     "test:watch": "npm run test:unit -- --watch",
     "lint": "xo",
@@ -25,7 +25,8 @@
     "release": "np"
   },
   "dependencies": {
-    "@frctl/utils": "^0.4.2"
+    "@frctl/utils": "^0.4.2",
+    "lodash": "^4.17.4"
   },
   "devDependencies": {
     "@frctl/eslint-config-frctl": "^0.1.0",

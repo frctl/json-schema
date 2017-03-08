@@ -25,47 +25,45 @@ class Parser {
     if (check.null(config) || check.undefined(config)) {
       assert(false, `Parser.constructor: 'config' must be an object with an 'expander' property [config-invalid]`, TypeError);
     }
-    assert.like(config, {expander: new Expander()}, `Parser.constructor: 'config' must be an object with an 'expander' property [config-invalid]`);
+    assert.like(config, {
+      expander: new Expander()
+    }, `Parser.constructor: 'config' must be an object with an 'expander' property [config-invalid]`);
     expanders.set(this, config.expander);
   }
 
-  parse(shorthand, id) {
-    assert.maybe.string(id, `Parser.parse: 'id' must be a string [id-invalid]`);
+  parse(shorthand, base) {
+    assert.maybe.object(base, `Parser.parse: 'base' must be an object [base-invalid]`);
     if (check.object(shorthand)) {
-      return this.parseObject(shorthand, id);
+      return this.parseObject(shorthand, base);
     }
     if (check.array(shorthand)) {
-      return this.parseArray(shorthand, id);
+      return this.parseArray(shorthand, base);
     }
 
     assert(false, `Parser.parse: 'shorthand' must be an object or an array [shorthand-invalid]`, TypeError);
   }
 
-  parseObject(shorthand, id) {
-    assert.maybe.string(id, `Parser.parse: 'id' must be a string [id-invalid]`);
+  parseObject(shorthand, base) {
+    assert.maybe.object(base, `Parser.parse: 'base' must be an object [base-invalid]`);
     if (check.like(shorthand, schemaDuck)) {
       return shorthand;
     }
 
-    return Object.assign(createBaseSchema(id), expanders.get(this).getExpansionForValue(shorthand));
+    return Object.assign(createBaseSchema(base), expanders.get(this).expandObject(shorthand));
   }
 
-  parseArray(shorthand, id) {
-    assert.maybe.string(id, `Parser.parse: 'id' must be a string [id-invalid]`);
+  parseArray(shorthand, base) {
+    assert.maybe.object(base, `Parser.parse: 'base' must be an object [base-invalid]`);
     assert.array.of.string(shorthand, `Parser.parse: 'shorthand' array must consist of strings only [shorthand-array-invalid]`);
 
-    return Object.assign(createBaseSchema(id), expanders.get(this).getExpansionForValue(shorthand));
+    return Object.assign(createBaseSchema(base), expanders.get(this).getExpansionForValue(shorthand));
   }
 }
 
-function createBaseSchema(id) {
-  let schema = {
+function createBaseSchema(base = {}) {
+  return Object.assign({
     $schema: 'http://json-schema.org/schema#'
-  };
-  if (id) {
-    schema.id = id;
-  }
-  return schema;
+  }, base);
 }
 
 module.exports = Parser;

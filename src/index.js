@@ -7,6 +7,5 @@ const arrayToken = require('./tokens/array');
 
 module.exports = function () {
   const expander = new Expander({tokens: [defaultToken, objectToken, arrayToken]});
-  const parser = new Parser({expander: expander});
-  return parser;
+  return new Parser({expander});
 };

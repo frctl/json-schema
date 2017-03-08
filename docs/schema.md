@@ -120,8 +120,8 @@ JS shorthand:
   disabled: 'boolean',
   modifiers: 'string',
   iconName: 'string',
-  iconClasses: { dependencies: 'iconName' }},
-  text: { required: true }}
+  iconClasses: { dependencies: 'iconName' },
+  text: { required: true }
 }
 ```
 
