@@ -3,11 +3,15 @@
 JSON Schema shorthand definition specification.
 
 ## Overview
+
 Expand Javascript shorthand:
-```js
-['title', 'text']
+
+```javascript
+{ title: 'string', text: 'string' }
 ```
+
 into JSON Schema:
+
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
@@ -24,11 +28,12 @@ into JSON Schema:
 }
 ```
 
-
 ## Examples
 
 ### Pill component
+
 Template:
+
 ```handlebars
 <div class="pill{{#if modifiers }} {{ modifiers }}{{/if}}">
   <span class="pill__text">{{ text }}</span>
@@ -36,6 +41,7 @@ Template:
 ```
 
 JSON schema:
+
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
@@ -53,47 +59,50 @@ JSON schema:
 ```
 
 JS shorthand:
-```js
-['modifier', 'text']
+
+```javascript
+{ modifier: 'string', text: 'string' }
 ```
-1. A top-level array consisting of only strings in the form `[ 'value', 'value' ]` is assumed to define a simple component object schema, and so is assigned a `$schema` value and an `id` property based on the component path.
-2. Each `'value'` is assumed to be a property name on `"properties"`.
-1. Each `'value'` is mapped to `"value": { "type": "string" }`
 
+1. A top-level object is assumed to define a component object schema, and so is assigned a `$schema` value and an `id` property based on the component path.
+2. Each `'property': value` pair is assumed to represent an item on `"properties"`.
 
+  1. if `value` is a `string`, `'property': 'value'` is mapped to `"property": { "type": "value" }`,
+  2. if `value` is an `object`, `'property': value` is mapped to `"property": value`. If the `'type'` property is absent from `value`, `"string"` is inferred.
 
 ### Button component
+
 Template:
+
 ```handlebars
 <a class="action{{#if modifiers }} {{ modifiers }}{{/if}}" href="{{href}}" {{#if disabled}}disabled{{/if}}>
-	<span class="action__inner">
-  	<span class="action__text">{{{ text }}}</span>
+    <span class="action__inner">
+      <span class="action__text">{{{ text }}}</span>
     {{#if iconName}}
       {{#if iconClasses}}
-      	{{>@icon-item id=iconName decorative="true" svgTitle="Call to action"}}
+          {{>@icon-item id=iconName decorative="true" svgTitle="Call to action"}}
       {{else}}
-      	{{>@icon-item id=iconName decorative="true" iconClasses="icon--mini" svgTitle="Call to action"}}
-    	{{/if}}
+          {{>@icon-item id=iconName decorative="true" iconClasses="icon--mini" svgTitle="Call to action"}}
+        {{/if}}
     {{/if}}
   </span>
 </a>
 ```
 
 JSON schema:
+
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
   "id": "/units/button",
   "type": "object",
   "properties": {
-    "href": {
-      "type": "string"
-    },
     "disabled": {
       "type": "boolean"
     },
     "modifiers": {
-      "type": "string"
+      "type": "string",
+      "enum": ["large", "small", "primary"]
     },
     "iconName": {
       "type": "string"
@@ -103,9 +112,12 @@ JSON schema:
     },
     "text": {
       "type": "string"
+    },
+    "href": {
+      "type": "string"
     }
   },
-  "required": ["text", "href"],
+  "required": ["text"],
   "dependencies": {
     "iconClasses": ["iconName"]
   }
@@ -113,30 +125,24 @@ JSON schema:
 ```
 
 JS shorthand:
-```js
+
+```javascript
 {
-  tag: 'string',
-  href: 'string',
   disabled: 'boolean',
-  modifiers: 'string',
+  modifiers: ['large', 'small', 'primary'],
   iconName: 'string',
   iconClasses: { dependencies: 'iconName' },
-  text: { required: true }
+  text: { required: true },
+  href: 'string'
 }
 ```
-
-More complex Schemas may be represented as an object.
-
-1. A top-level object is assumed to define a component object schema, and so is assigned a `$schema` value and an `id` property based on the component path.
-1. Each `'property': value` pair is assumed to represent an item on `"properties"`.
-   1. if `value` is a `string`, `'property': 'value'` is mapped to `"property": { "type": "value" }`,
-   1. if `value` is an `object`, `'property': value` is mapped to `"property": value`. If the `'type'` property is absent from `value`, `"string"` is inferred.
-1. Any properties that match top-level JSON Schema object properties, such as `dependencies`, are bubbled up.
-
-
+2. An array `value` is assumed to be an enum. If all items in the array are the same type, them enum will be declared to be of that type; otherwise no type will be declared.
+3. Certain properties that match top-level JSON Schema object properties, such as `dependencies`, are hoisted.
 
 ### List component
+
 Template:
+
 ```handlebars
 <ul class="list">
 {{#each listItems}}
@@ -144,7 +150,9 @@ Template:
 {{/each}}
 </ul>
 ```
+
 JSON schema:
+
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
@@ -156,27 +164,37 @@ JSON schema:
       "items": {
         "type": "string"
       }
+    },
+    "otherList": {
+      "type": "array"
+    },
+    "finalList": {
+      "type": "array"
     }
-  },
-  "required": ["title"]
+  }
 }
 ```
-JS Shorthand:
-```js
-{
-  type: 'string',
-  listItems: { 'array': 'string' }
-  // or listItems: 'array'  if you don't need item types
-}
-```
-Given a `'property': value` pair:
-1. If `value` equals `'array'`, then `'property': 'value'` is mapped to `"property": { "type": "array" }`, as previously described.
-2. If `value` is an `object` in the form `{ 'property1': value1 }`, `'property1'` equals `'array'`, and `value1` is a string, then `'property': value` is mapped to `"property": { "type": "array", "items": { "type": "value1" } }`.
 
+JS Shorthand:
+
+```javascript
+{
+  listItems: 'string[]',
+  otherList: '[]',
+  finalList: 'array'
+}
+```
+
+Given a `'property': value` pair:
+
+1. If `value` equals `'array'|'[]'`, then `'property': 'value'` is mapped to `"property": { "type": "array" }`.
+1. If `value` matches `'{type}[]'`, then `'property': 'value'` is mapped to `"property": { "type": "array", "items": { "type": "{type}" } }`.
 
 
 ### Badge component
+
 Template:
+
 ```handlebars
 <figure class="badge{{#if modifiers}} {{ modifiers }}{{/if}}">
     {{#if img}}<img class="badge__image {{img.modifiers}}" src="{{img.src}}" alt="{{img.alt}}">{{/if}}
@@ -188,6 +206,7 @@ Template:
 ```
 
 JSON schema:
+
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
@@ -201,7 +220,8 @@ JSON schema:
       "type": "object",
       "properties": {
         "modifiers": {
-          "type": "string"
+          "type": "string",
+          "enum": ["primary", "secondary"]
         },
         "src": {
           "type": "string"
@@ -221,42 +241,32 @@ JSON schema:
   "required": ["title"]
 }
 ```
-1. Refs are defined in the same way as a standard Schema.
-2. Objects are be defined in the same ways as described above.
-
 JS shorthand:
-```js
+```javascript
 {
   modifier: 'string',
   pill: { '$ref': '/units/pill'},
-  img: [
-    'modifiers',
-    'src',
-    'alt'
-  ],
+  img: {
+    modifiers: ['primary', 'secondary'],
+    src: 'string',
+    alt: 'string'
+  },
   title: { required: true }
 }
 ```
 
-QUESTION 1: should a convention be able to define a ref, similar to
-https://metacpan.org/pod/JSON::Schema::Shorthand?
-i.e.
-```js
+1. Refs are defined in the same way as a standard Schema.
+2. Nested objects follow the same rules described above.
+
+
+
+
+
+
+QUESTION 1: should a convention be able to define a ref, similar to <https://metacpan.org/pod/JSON::Schema::Shorthand?> i.e.
+
+```javascript
 {
   pill: '#/units/pill'
 }
-```
-
-QUESTION 2: should the array extreme shorthand *only* accept strings, or should we allow objects as values too (similar to the original proposal)
-https://metacpan.org/pod/JSON::Schema::Shorthand?
-i.e.
-```js
-['modifier', 'label']
-```
-and
-```
-[
-  'modifier',
-  { 'label': 'boolean'}
-]
 ```
