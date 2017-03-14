@@ -265,7 +265,46 @@ describe('Configured Parser', function () {
         });
         expect(result).to.deep.equal(expanded);
       });
-      it('has multiple dependencies');
+
+      it('has multiple dependencies', function () {
+        const parser = getParser();
+        const shorthand = {
+          disabled: 'boolean',
+          iconName: {
+            type: 'string',
+            dependencies: ['disabled', 'iconName']
+          },
+          iconClasses: {
+            type: 'boolean',
+            dependencies: 'iconName'
+          }
+        };
+
+        const expanded = Object.assign({}, baseSchema({
+          id: '@component'
+        }), {
+          properties: {
+            disabled: {
+              type: 'boolean'
+            },
+            iconClasses: {
+              type: 'boolean'
+            },
+            iconName: {
+              type: 'string'
+            }
+          },
+          dependencies: {
+            iconClasses: ['iconName'],
+            iconName: ['disabled', 'iconName']
+          }
+        });
+
+        const result = parser.parse(shorthand, {
+          id: '@component'
+        });
+        expect(result).to.deep.equal(expanded);
+      });
     });
   });
 });
