@@ -8,31 +8,31 @@ describe('Expander', function () {
   describe('constructor', function () {
     it(`only accepts valid arguments`);
   });
-  describe('registerTokens()', function () {
+  describe('registerGenerators()', function () {
     it('only accepts valid arguments', function () {
       for (const value of [123, '345', {}, undefined]) {
         const fr = () => {
           const expander = new Expander();
-          expander.registerTokens(value);
+          expander.registerGenerators(value);
         };
-        expect(fr).to.throw(TypeError, `[tokens-invalid]`);
+        expect(fr).to.throw(TypeError, `[generators-invalid]`);
       }
       expect(() => {
         const expander = new Expander();
-        expander.registerTokens(function () {});
+        expander.registerGenerators(function () {});
       }).to.not.throw();
     });
     it('successfully adds a single valid token', function () {
       const expander = new Expander();
-      expect(expander.tokensLength).to.equal(0);
-      expander.registerTokens(function () {});
-      expect(expander.tokensLength).to.equal(1);
+      expect(expander.generatorsLength).to.equal(0);
+      expander.registerGenerators(function () {});
+      expect(expander.generatorsLength).to.equal(1);
     });
-    it('successfully adds an array of tokens', function () {
+    it('successfully adds an array of generators', function () {
       const expander = new Expander();
-      expect(expander.tokensLength).to.equal(0);
-      expander.registerTokens([function () {}, function () {}, function () {}]);
-      expect(expander.tokensLength).to.equal(3);
+      expect(expander.generatorsLength).to.equal(0);
+      expander.registerGenerators([function () {}, function () {}, function () {}]);
+      expect(expander.generatorsLength).to.equal(3);
     });
   });
 });

@@ -2,31 +2,10 @@
 const expect = require('@frctl/utils/test').expect;
 
 const getParser = require('../src');
-const {
-  baseSchema
-} = require('./support/utils');
+const {baseSchema} = require('./support/utils');
 
 describe('Configured Parser', function () {
   describe('parse()', function () {
-    // it(`successfully expands array shorthand notation`, function () {
-    //   const parser = getParser();
-    //
-    //   const shorthand = ['title', 'text'];
-    //   const expanded = Object.assign({}, baseSchema({id: '@component'}), {
-    //     properties: {
-    //       title: {
-    //         type: 'string'
-    //       },
-    //       text: {
-    //         type: 'string'
-    //       }
-    //     }
-    //   });
-    //
-    //   const result = parser.parse(shorthand, {id: '@component'});
-    //   expect(result).to.deep.equal(expanded);
-    // });
-
     it(`successfully expands simple object shorthand notation`, function () {
       const parser = getParser();
 
@@ -75,7 +54,7 @@ describe('Configured Parser', function () {
       expect(result).to.deep.equal(expanded);
     });
 
-    describe(`successfully expands object with nested array enum notation when enum`, function () {
+    describe(`successfully expands object with array enum notation when enum`, function () {
       it(`has values with the same type`, function () {
         const parser = getParser();
 
@@ -173,7 +152,7 @@ describe('Configured Parser', function () {
       expect(result).to.deep.equal(expanded);
     });
 
-    describe(`successfully expands object with dependencies when object`, function () {
+    describe(`successfully expands object with 'dependencies' when object`, function () {
       it('has no type', function () {
         const parser = getParser();
 
@@ -210,15 +189,174 @@ describe('Configured Parser', function () {
         expect(result).to.deep.equal(expanded);
       });
 
-      it('has type', function () {
+      it('has a type', function () {
         const parser = getParser();
         const shorthand = {
           iconName: 'string',
           disabled: 'boolean',
-          test: {
+          iconClasses: {
+            type: 'boolean',
+            dependencies: 'iconName'
+          }
+        };
+
+        const expanded = Object.assign({}, baseSchema({
+          id: '@component'
+        }), {
+          properties: {
+            iconName: {
+              type: 'string'
+            },
+            disabled: {
+              type: 'boolean'
+            },
+            iconClasses: {
+              type: 'boolean'
+            }
+          },
+          dependencies: {
+            iconClasses: ['iconName']
+          }
+        });
+
+        const result = parser.parse(shorthand, {
+          id: '@component'
+        });
+        expect(result).to.deep.equal(expanded);
+      });
+
+      it('has objects with nested dependencies', function () {
+        const parser = getParser();
+        const shorthand = {
+          iconName: 'string',
+          disabled: {
             other: 'string',
             inner: {
               dependencies: 'other'
+            }
+          },
+          iconClasses: 'string'
+        };
+
+        const expanded = Object.assign({}, baseSchema({
+          id: '@component'
+        }), {
+          properties: {
+            iconName: {
+              type: 'string'
+            },
+            iconClasses: {
+              type: 'string'
+            },
+            disabled: {
+              type: 'object',
+              properties: {
+                other: {
+                  type: 'string'
+                },
+                inner: {
+                  type: 'string'
+                }
+              },
+              dependencies: {
+                inner: ['other']
+              }
+            }
+          }
+        });
+
+        const result = parser.parse(shorthand, {
+          id: '@component'
+        });
+        expect(result).to.deep.equal(expanded);
+      });
+
+      it('has multiple dependencies', function () {
+        const parser = getParser();
+        const shorthand = {
+          disabled: 'boolean',
+          iconName: {
+            type: 'string',
+            dependencies: ['disabled', 'iconName']
+          },
+          iconClasses: {
+            type: 'boolean',
+            dependencies: 'iconName'
+          }
+        };
+
+        const expanded = Object.assign({}, baseSchema({
+          id: '@component'
+        }), {
+          properties: {
+            disabled: {
+              type: 'boolean'
+            },
+            iconClasses: {
+              type: 'boolean'
+            },
+            iconName: {
+              type: 'string'
+            }
+          },
+          dependencies: {
+            iconClasses: ['iconName'],
+            iconName: ['disabled', 'iconName']
+          }
+        });
+
+        const result = parser.parse(shorthand, {
+          id: '@component'
+        });
+        expect(result).to.deep.equal(expanded);
+      });
+    });
+
+    describe.skip(`successfully expands object with 'required' property when object`, function () {
+      it('has no type', function () {
+        const parser = getParser();
+
+        let shorthand = {
+          iconName: {required: true},
+          disabled: 'boolean',
+          iconClasses: 'string'
+        };
+
+        let expanded = Object.assign({}, baseSchema({
+          id: '@component'
+        }), {
+          properties: {
+            iconName: {
+              type: 'string'
+            },
+            disabled: {
+              type: 'boolean'
+            },
+            iconClasses: {
+              type: 'string'
+            }
+          },
+          required: ['iconName']
+        });
+
+        let result = parser.parse(shorthand, {
+          id: '@component'
+        });
+        expect(result).to.deep.equal(expanded);
+      });
+
+      it.skip('has a type', function () {
+        const parser = getParser();
+        const shorthand = {
+          iconName: {
+            type: 'boolean',
+            required: true
+          },
+          disabled: 'boolean',
+          test: {
+            other: 'string',
+            inner: {
+              required: 'true'
             }
           },
           iconClasses: {
@@ -266,7 +404,7 @@ describe('Configured Parser', function () {
         expect(result).to.deep.equal(expanded);
       });
 
-      it('has multiple dependencies', function () {
+      it.skip('has multiple dependencies', function () {
         const parser = getParser();
         const shorthand = {
           disabled: 'boolean',

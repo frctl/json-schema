@@ -69,7 +69,6 @@ describe('Parser', function () {
         const expanded = baseSchema();
         expect(result).to.be.an('object');
         expect(result.$schema).to.equal(expanded.$schema);
-        expect(result.type).to.exist;
       }
     });
 
