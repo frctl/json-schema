@@ -33,30 +33,12 @@ class Parser {
 
   parse(shorthand, base) {
     assert.maybe.object(base, `Parser.parse: 'base' must be an object [base-invalid]`);
-    if (check.object(shorthand)) {
-      return this.parseObject(shorthand, base);
-    }
-    if (check.array(shorthand)) {
-      return this.parseArray(shorthand, base);
-    }
+    assert.object(shorthand, `Parser.parse: 'shorthand' must be an object [shorthand-invalid]`, TypeError);
 
-    assert(false, `Parser.parse: 'shorthand' must be an object or an array [shorthand-invalid]`, TypeError);
-  }
-
-  parseObject(shorthand, base) {
-    assert.maybe.object(base, `Parser.parse: 'base' must be an object [base-invalid]`);
     if (check.like(shorthand, schemaDuck)) {
       return shorthand;
     }
-
     return Object.assign(createBaseSchema(base), expanders.get(this).expandObject(shorthand));
-  }
-
-  parseArray(shorthand, base) {
-    assert.maybe.object(base, `Parser.parse: 'base' must be an object [base-invalid]`);
-    assert.array.of.string(shorthand, `Parser.parse: 'shorthand' array must consist of strings only [shorthand-array-invalid]`);
-
-    return Object.assign(createBaseSchema(base), expanders.get(this).getExpansionForValue(shorthand));
   }
 }
 

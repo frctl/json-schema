@@ -12,7 +12,7 @@ const basicConfig = {
 const {baseSchema} = require('./support/utils');
 
 describe('Parser', function () {
-  describe('constructor()', function () {
+  describe('constructor', function () {
     it(`only accepts valid config arguments`, function () {
       for (const config of ['string', [], 123, null, undefined]) {
         const fr = () => (new Parser(config));
@@ -32,13 +32,10 @@ describe('Parser', function () {
           parser.parse(value);
         };
       };
-      for (const value of ['string', 123]) {
+      for (const value of ['string', 123, ['one', 'two']]) {
         expect(fr(value)).to.throw(TypeError, `[shorthand-invalid]`);
       }
-      for (const value of [['string', 123]]) {
-        expect(fr(value)).to.throw(TypeError, `[shorthand-array-invalid]`);
-      }
-      for (const value of [{}, ['one', 'two']]) {
+      for (const value of [{}]) {
         expect(fr(value)).to.not.throw();
       }
     });
@@ -66,7 +63,7 @@ describe('Parser', function () {
     });
 
     it(`returns a valid but empty Schema, if provided with a valid but empty argument`, function () {
-      for (const value of [[], {}]) {
+      for (const value of [{}]) {
         const parser = new Parser(basicConfig);
         const result = parser.parse(value);
         const expanded = baseSchema();
@@ -77,7 +74,7 @@ describe('Parser', function () {
     });
 
     it(`assigns 'id' correctly`, function () {
-      for (const value of [[], {}]) {
+      for (const value of [{}]) {
         const parser = new Parser(basicConfig);
         const expanded = baseSchema({id: '@component'});
         const result = parser.parse(value, {id: '@component'});
@@ -87,7 +84,7 @@ describe('Parser', function () {
     });
 
     it(`assigns '$schema' correctly`, function () {
-      for (const value of [[], {}]) {
+      for (const value of [{}]) {
         const parser = new Parser(basicConfig);
         const expanded = baseSchema();
         expanded.$schema = 'http://json-schema.org/hyper-schema#';

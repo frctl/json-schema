@@ -3,9 +3,9 @@ const Parser = require('./parser');
 
 const defaultToken = require('./tokens/default');
 const objectToken = require('./tokens/object');
-const arrayToken = require('./tokens/array');
+const enumToken = require('./tokens/enum');
 
 module.exports = function () {
-  const expander = new Expander({tokens: [defaultToken, objectToken, arrayToken]});
+  const expander = new Expander({tokens: [defaultToken, objectToken, enumToken]});
   return new Parser({expander});
 };
