@@ -15,7 +15,7 @@ into JSON Schema:
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
-  "id": "/collection/component",
+  "id": "@component",
   "type": "object",
   "properties": {
     "title": {
@@ -45,7 +45,7 @@ JSON schema:
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
-  "id": "/units/pill",
+  "id": "@pill",
   "type": "object",
   "properties": {
     "modifiers": {
@@ -94,7 +94,7 @@ JSON schema:
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
-  "id": "/units/button",
+  "id": "@button",
   "type": "object",
   "properties": {
     "disabled": {
@@ -156,7 +156,7 @@ JSON schema:
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
-  "id": "/patterns/badge",
+  "id": "@list",
   "type": "object",
   "properties": {
     "listItems": {
@@ -210,7 +210,7 @@ JSON schema:
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
-  "id": "/patterns/badge",
+  "id": "@badge",
   "type": "object",
   "properties": {
     "modifiers": {
@@ -232,7 +232,7 @@ JSON schema:
       }
     },
     "pill": {
-      "$ref": "/units/pill"
+      "$ref": "@pill"
     },
     "title": {
       "type": "string"
@@ -245,7 +245,7 @@ JS shorthand:
 ```javascript
 {
   modifier: 'string',
-  pill: { '$ref': '/units/pill'},
+  pill: '@pill',
   img: {
     modifiers: ['primary', 'secondary'],
     src: 'string',
@@ -255,15 +255,11 @@ JS shorthand:
 }
 ```
 
-1. Refs are defined in the same way as a standard Schema.
-2. Nested objects follow the same rules described above.
+1. To refer to other components, a component name with an '@' identifier will be expanded to a $ref.
 
 
 
-
-
-
-QUESTION 1: should a convention be able to define a ref, similar to <https://metacpan.org/pod/JSON::Schema::Shorthand?> i.e.
+QUESTION 1: should a convention be able to define a non-component ref, similar to <https://metacpan.org/pod/JSON::Schema::Shorthand?> i.e.
 
 ```javascript
 {

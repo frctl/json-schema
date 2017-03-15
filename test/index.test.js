@@ -183,6 +183,26 @@ describe('Configured Parser', function () {
       });
     });
 
+    describe(`successfully expands object with 'ref' shorthand when shorthand`, function () {
+      it(`contains a component reference`, function () {
+        const parser = getParser();
+
+        const shorthand = {
+          pill: '@pill'
+        };
+        const expanded = Object.assign({}, baseSchema(), {
+          properties: {
+            pill: {
+              $ref: '@pill'
+            }
+          }
+        });
+
+        const result = parser.parse(shorthand);
+        expect(result).to.deep.equal(expanded);
+      });
+    });
+
     it(`successfully expands object with nested object shorthand notation`, function () {
       const parser = getParser();
 
