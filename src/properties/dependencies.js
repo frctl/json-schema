@@ -2,7 +2,7 @@ const defaultReduce = (memo, val) => {
   return Object.assign({}, memo, val);
 };
 
-function expandForDependency(key, val) {
+function expand(key, val) {
   if (val) {
     return {
       [key]: [].concat(val)
@@ -11,13 +11,13 @@ function expandForDependency(key, val) {
   return;
 }
 
-function getDependencies(base, remainder) {
+function generate(base, remainder) {
   return Object.keys(remainder)
     .filter(key => {
       return remainder[key] && remainder[key].dependencies;
     })
     .map(key => {
-      let deps = expandForDependency(key, remainder[key].dependencies);
+      let deps = expand(key, remainder[key].dependencies);
       delete remainder[key].dependencies;
       return deps;
     })
@@ -27,6 +27,6 @@ function getDependencies(base, remainder) {
 module.exports = function () {
   return {
     key: 'dependencies',
-    generate: getDependencies
+    generate: generate
   };
 };

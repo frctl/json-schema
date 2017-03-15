@@ -1,4 +1,4 @@
-function getType(base, remainder) {
+function generate(base, remainder) {
   let type = base.type || 'string';
   if (Object.keys(remainder).length > 0 && !base.type) {
     type = 'object';
@@ -9,6 +9,6 @@ function getType(base, remainder) {
 module.exports = function () {
   return {
     key: 'type',
-    generate: getType
+    generate: generate
   };
 };

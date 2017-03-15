@@ -36,7 +36,7 @@ class Expander {
   }
 
   assignProperty(ob, key, value) {
-    if ((value && !check.object(value)) || check.nonEmptyObject(value)) {
+    if (value && !_.isEmpty(value)) {
       return Object.assign({}, ob, {
         [key]: value
       });
@@ -47,7 +47,7 @@ class Expander {
   expandObject(object, _memo = {}) {
     const initial = this.onlyReservedProps(object);
     const remainder = this.withoutReservedProps(object);
-    let expanded;
+    let expanded = {};
 
     const additionalProps = generators.get(this);
 

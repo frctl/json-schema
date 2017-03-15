@@ -50,7 +50,7 @@ class PropertyGenerator {
     return expansion(value, parent);
   }
 
-  expandForProperty(key, value = 'string') {
+  expand(key, value = 'string') {
     return {
       [key]: this.getExpansionForValue(value)
     };
@@ -58,7 +58,7 @@ class PropertyGenerator {
 
   generate(base, remainder) {
     return Object.keys(remainder)
-      .map(key => this.expandForProperty(key, remainder[key]))
+      .map(key => this.expand(key, remainder[key]))
       .reduce(defaultReduce, {});
   }
 }
