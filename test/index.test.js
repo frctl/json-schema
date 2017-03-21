@@ -9,15 +9,11 @@ const {
 describe('Configured Parser', function () {
   describe('parse()', function () {
     it(`successfully expands simple object shorthand notation`, function () {
-      const parser = getParser();
-
       const shorthand = {
         title: 'string',
         disabled: 'boolean'
       };
-      const expanded = Object.assign({}, baseSchema({
-        id: '@component'
-      }), {
+      const expanded = {
         properties: {
           title: {
             type: 'string'
@@ -26,48 +22,40 @@ describe('Configured Parser', function () {
             type: 'boolean'
           }
         }
-      });
+      };
 
-      const result = parser.parse(shorthand, {
+      const base = {
         id: '@component'
-      });
-      expect(result).to.deep.equal(expanded);
+      };
+      testParser(shorthand, expanded, base);
     });
 
     it(`reverts to default type expander if unknown type is supplied`, function () {
-      const parser = getParser();
-
       const shorthand = {
         title: 'unknown'
       };
-      const expanded = Object.assign({}, baseSchema({
-        id: '@component'
-      }), {
+      const expanded = {
         properties: {
           title: {
             type: 'unknown'
           }
         }
-      });
+      };
 
-      const result = parser.parse(shorthand, {
+      const base = {
         id: '@component'
-      });
-      expect(result).to.deep.equal(expanded);
+      };
+      testParser(shorthand, expanded, base);
     });
 
     describe(`successfully expands object with 'enum' shorthand when shorthand`, function () {
       it(`has values of the same type`, function () {
-        const parser = getParser();
-
         const shorthand = {
           title: 'string',
           modifiers: ['primary', 'secondary', 'tertiary']
         };
 
-        const expanded = Object.assign({}, baseSchema({
-          id: '@component'
-        }), {
+        const expanded = {
           properties: {
             title: {
               type: 'string'
@@ -77,24 +65,20 @@ describe('Configured Parser', function () {
               enum: ['primary', 'secondary', 'tertiary']
             }
           }
-        });
+        };
 
-        const result = parser.parse(shorthand, {
+        const base = {
           id: '@component'
-        });
-        expect(result).to.deep.equal(expanded);
+        };
+        testParser(shorthand, expanded, base);
       });
       it(`has values of different types`, function () {
-        const parser = getParser();
-
         const shorthand = {
           title: 'string',
           modifiers: ['primary', 23, false]
         };
 
-        const expanded = Object.assign({}, baseSchema({
-          id: '@component'
-        }), {
+        const expanded = {
           properties: {
             title: {
               type: 'string'
@@ -103,69 +87,57 @@ describe('Configured Parser', function () {
               enum: ['primary', 23, false]
             }
           }
-        });
+        };
 
-        const result = parser.parse(shorthand, {
+        const base = {
           id: '@component'
-        });
-        expect(result).to.deep.equal(expanded);
+        };
+        testParser(shorthand, expanded, base);
       });
     });
 
     describe(`successfully expands object with 'array' shorthand when shorthand`, function () {
       it(`is a typeless explicit array ('array')`, function () {
-        const parser = getParser();
-
         const shorthand = {
           list: 'array'
         };
-        const expanded = Object.assign({}, baseSchema({
-          id: '@component'
-        }), {
+        const expanded = {
           properties: {
             list: {
               type: 'array'
             }
           }
-        });
+        };
 
-        const result = parser.parse(shorthand, {
+        const base = {
           id: '@component'
-        });
-        expect(result).to.deep.equal(expanded);
+        };
+        testParser(shorthand, expanded, base);
       });
 
       it(`is a typeless implicit array ('[]')`, function () {
-        const parser = getParser();
-
         const shorthand = {
           list: '[]'
         };
-        const expanded = Object.assign({}, baseSchema({
-          id: '@component'
-        }), {
+        const expanded = {
           properties: {
             list: {
               type: 'array'
             }
           }
-        });
+        };
 
-        const result = parser.parse(shorthand, {
+        const base = {
           id: '@component'
-        });
-        expect(result).to.deep.equal(expanded);
+        };
+        testParser(shorthand, expanded, base);
       });
 
       it(`is an array with type ('string[]')`, function () {
-        const parser = getParser();
-
         const shorthand = {
           list: 'string[]'
         };
-        const expanded = Object.assign({}, baseSchema({
-          id: '@component'
-        }), {
+        const expanded = {
           properties: {
             list: {
               type: 'array',
@@ -174,38 +146,33 @@ describe('Configured Parser', function () {
               }
             }
           }
-        });
+        };
 
-        const result = parser.parse(shorthand, {
+        const base = {
           id: '@component'
-        });
-        expect(result).to.deep.equal(expanded);
+        };
+        testParser(shorthand, expanded, base);
       });
     });
 
     describe(`successfully expands object with 'ref' shorthand when shorthand`, function () {
       it(`contains a component reference`, function () {
-        const parser = getParser();
-
         const shorthand = {
           pill: '@pill'
         };
-        const expanded = Object.assign({}, baseSchema(), {
+        const expanded = {
           properties: {
             pill: {
               $ref: '@pill'
             }
           }
-        });
+        };
 
-        const result = parser.parse(shorthand);
-        expect(result).to.deep.equal(expanded);
+        testParser(shorthand, expanded, {});
       });
     });
 
     it(`successfully expands object with nested object shorthand notation`, function () {
-      const parser = getParser();
-
       const shorthand = {
         title: 'string',
         img: {
@@ -215,9 +182,7 @@ describe('Configured Parser', function () {
         }
       };
 
-      const expanded = Object.assign({}, baseSchema({
-        id: '@component'
-      }), {
+      const expanded = {
         properties: {
           title: {
             type: 'string'
@@ -237,19 +202,17 @@ describe('Configured Parser', function () {
             }
           }
         }
-      });
+      };
 
-      const result = parser.parse(shorthand, {
+      const base = {
         id: '@component'
-      });
-      expect(result).to.deep.equal(expanded);
+      };
+      testParser(shorthand, expanded, base);
     });
 
     describe(`successfully expands object with 'dependencies' property when object`, function () {
       it('has no type', function () {
-        const parser = getParser();
-
-        let shorthand = {
+        const shorthand = {
           iconName: 'string',
           disabled: 'boolean',
           iconClasses: {
@@ -257,9 +220,7 @@ describe('Configured Parser', function () {
           }
         };
 
-        let expanded = Object.assign({}, baseSchema({
-          id: '@component'
-        }), {
+        const expanded = {
           properties: {
             iconName: {
               type: 'string'
@@ -274,16 +235,16 @@ describe('Configured Parser', function () {
           dependencies: {
             iconClasses: ['iconName']
           }
-        });
+        };
 
-        let result = parser.parse(shorthand, {
+        const base = {
           id: '@component'
-        });
-        expect(result).to.deep.equal(expanded);
+        };
+
+        testParser(shorthand, expanded, base);
       });
 
       it('has a type', function () {
-        const parser = getParser();
         const shorthand = {
           iconName: 'string',
           disabled: 'boolean',
@@ -293,9 +254,7 @@ describe('Configured Parser', function () {
           }
         };
 
-        const expanded = Object.assign({}, baseSchema({
-          id: '@component'
-        }), {
+        const expanded = {
           properties: {
             iconName: {
               type: 'string'
@@ -310,16 +269,16 @@ describe('Configured Parser', function () {
           dependencies: {
             iconClasses: ['iconName']
           }
-        });
+        };
 
-        const result = parser.parse(shorthand, {
+        const base = {
           id: '@component'
-        });
-        expect(result).to.deep.equal(expanded);
+        };
+
+        testParser(shorthand, expanded, base);
       });
 
       it(`has multiple 'dependencies'`, function () {
-        const parser = getParser();
         const shorthand = {
           disabled: 'boolean',
           iconName: {
@@ -332,9 +291,7 @@ describe('Configured Parser', function () {
           }
         };
 
-        const expanded = Object.assign({}, baseSchema({
-          id: '@component'
-        }), {
+        const expanded = {
           properties: {
             disabled: {
               type: 'boolean'
@@ -350,16 +307,19 @@ describe('Configured Parser', function () {
             iconClasses: ['iconName'],
             iconName: ['disabled', 'iconName']
           }
-        });
+        };
 
-        const result = parser.parse(shorthand, {
+        const base = {
           id: '@component'
-        });
-        expect(result).to.deep.equal(expanded);
+        };
+
+        testParser(shorthand, expanded, base);
       });
 
       it(`has objects with nested 'dependencies'`, function () {
-        const parser = getParser();
+        const base = {
+          id: '@component'
+        };
         const shorthand = {
           iconName: 'string',
           disabled: {
@@ -370,10 +330,7 @@ describe('Configured Parser', function () {
           },
           iconClasses: 'string'
         };
-
-        const expanded = Object.assign({}, baseSchema({
-          id: '@component'
-        }), {
+        const expanded = {
           properties: {
             iconName: {
               type: 'string'
@@ -396,20 +353,14 @@ describe('Configured Parser', function () {
               }
             }
           }
-        });
-
-        const result = parser.parse(shorthand, {
-          id: '@component'
-        });
-        expect(result).to.deep.equal(expanded);
+        };
+        testParser(shorthand, expanded, base);
       });
     });
 
     describe(`successfully expands object with 'required' property when object`, function () {
       it('has no type', function () {
-        const parser = getParser();
-
-        let shorthand = {
+        const shorthand = {
           iconName: {
             required: true
           },
@@ -417,9 +368,7 @@ describe('Configured Parser', function () {
           iconClasses: 'string'
         };
 
-        let expanded = Object.assign({}, baseSchema({
-          id: '@component'
-        }), {
+        const expanded = {
           properties: {
             iconName: {
               type: 'string'
@@ -432,18 +381,16 @@ describe('Configured Parser', function () {
             }
           },
           required: ['iconName']
-        });
-
-        let result = parser.parse(shorthand, {
+        };
+        const base = {
           id: '@component'
-        });
-        expect(result).to.deep.equal(expanded);
+        };
+
+        testParser(shorthand, expanded, base);
       });
 
       it('has a type', function () {
-        const parser = getParser();
-
-        let shorthand = {
+        const shorthand = {
           iconName: {
             type: 'boolean',
             required: true
@@ -452,9 +399,7 @@ describe('Configured Parser', function () {
           iconClasses: 'string'
         };
 
-        let expanded = Object.assign({}, baseSchema({
-          id: '@component'
-        }), {
+        const expanded = {
           properties: {
             iconName: {
               type: 'boolean'
@@ -467,18 +412,17 @@ describe('Configured Parser', function () {
             }
           },
           required: ['iconName']
-        });
+        };
 
-        let result = parser.parse(shorthand, {
+        const base = {
           id: '@component'
-        });
-        expect(result).to.deep.equal(expanded);
+        };
+
+        testParser(shorthand, expanded, base);
       });
 
       it(`has multiple 'required's`, function () {
-        const parser = getParser();
-
-        let shorthand = {
+        const shorthand = {
           iconName: {
             type: 'boolean',
             required: true
@@ -490,9 +434,7 @@ describe('Configured Parser', function () {
           iconClasses: 'string'
         };
 
-        let expanded = Object.assign({}, baseSchema({
-          id: '@component'
-        }), {
+        const expanded = {
           properties: {
             iconName: {
               type: 'boolean'
@@ -505,18 +447,17 @@ describe('Configured Parser', function () {
             }
           },
           required: ['iconName', 'disabled']
-        });
+        };
 
-        let result = parser.parse(shorthand, {
+        const base = {
           id: '@component'
-        });
-        expect(result).to.deep.equal(expanded);
+        };
+
+        testParser(shorthand, expanded, base);
       });
 
       it(`has objects with nested 'required's`, function () {
-        const parser = getParser();
-
-        let shorthand = {
+        const shorthand = {
           iconName: {
             type: 'boolean',
             required: true
@@ -537,9 +478,7 @@ describe('Configured Parser', function () {
           iconClasses: 'string'
         };
 
-        let expanded = Object.assign({}, baseSchema({
-          id: '@component'
-        }), {
+        const expanded = {
           properties: {
             iconName: {
               type: 'boolean'
@@ -564,13 +503,83 @@ describe('Configured Parser', function () {
             }
           },
           required: ['iconName', 'disabled']
-        });
+        };
 
-        let result = parser.parse(shorthand, {
+        const base = {
           id: '@component'
-        });
-        expect(result).to.deep.equal(expanded);
+        };
+
+        testParser(shorthand, expanded, base);
+      });
+    });
+
+    describe(`successfully expands object with '$include' property when it`, function () {
+
+    });
+
+    describe.skip(`successfully expands object with '$include' property when it`, function () {
+      it(`is the only property present`, function () {
+        const shorthand = {
+          $include: ['@label', '@form-unit']
+        };
+
+        const expanded = {
+          allOf: [{
+            $ref: '@label'
+          },
+          {
+            $ref: '@form-unit'
+          }]
+        };
+
+        testParser(shorthand, expanded, {});
+      });
+
+      it(`is not the only property present`, function () {
+        const shorthand = {
+          $include: ['@label', '@form-unit'],
+          placeholder: 'string',
+          inputClass: ['inline', 'constrained'],
+          inputId: {
+            type: 'string',
+            required: true
+          }
+        };
+
+        const expanded = {
+          allOf: [{
+            $ref: '@label'
+          },
+          {
+            $ref: '@form-unit'
+          },
+          {
+            properties: {
+              placeholder: {
+                type: 'string'
+              },
+              inputClass: {
+                type: 'string',
+                enum: ['inline', 'constrained']
+              },
+              inputId: {
+                type: 'string'
+              }
+            }
+          }
+          ],
+          required: ['inputId']
+        };
+
+        testParser(shorthand, expanded, {});
       });
     });
   });
 });
+
+function testParser(shorthand, expected, base) {
+  const parser = getParser();
+  const result = parser.parse(shorthand, base);
+  const expanded = Object.assign({}, baseSchema(base), expected);
+  expect(result).to.deep.equal(expanded);
+}

@@ -15,7 +15,6 @@ into JSON Schema:
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
-  "id": "@component",
   "type": "object",
   "properties": {
     "title": {
@@ -32,7 +31,7 @@ into JSON Schema:
 
 ### Pill component
 
-Template:
+#### Template
 
 ```handlebars
 <div class="pill{{#if modifiers }} {{ modifiers }}{{/if}}">
@@ -40,12 +39,11 @@ Template:
 </div>
 ```
 
-JSON schema:
+#### JSON schema
 
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
-  "id": "@pill",
   "type": "object",
   "properties": {
     "modifiers": {
@@ -58,13 +56,13 @@ JSON schema:
 }
 ```
 
-JS shorthand:
+#### JS shorthand
 
 ```javascript
 { modifier: 'string', text: 'string' }
 ```
 
-1. A top-level object is assumed to define a component object schema, and so is assigned a `$schema` value and an `id` property based on the component path.
+1. A top-level object is assumed to define a component object schema, and so is assigned a `$schema` value.
 2. Each `'property': value` pair is assumed to represent an item on `"properties"`.
 
   1. if `value` is a `string`, `'property': 'value'` is mapped to `"property": { "type": "value" }`,
@@ -72,7 +70,7 @@ JS shorthand:
 
 ### Button component
 
-Template:
+#### Template
 
 ```handlebars
 <a class="action{{#if modifiers }} {{ modifiers }}{{/if}}" href="{{href}}" {{#if disabled}}disabled{{/if}}>
@@ -89,12 +87,11 @@ Template:
 </a>
 ```
 
-JSON schema:
+#### JSON schema
 
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
-  "id": "@button",
   "type": "object",
   "properties": {
     "disabled": {
@@ -124,7 +121,7 @@ JSON schema:
 }
 ```
 
-JS shorthand:
+#### JS shorthand
 
 ```javascript
 {
@@ -136,12 +133,13 @@ JS shorthand:
   href: 'string'
 }
 ```
-2. An array `value` is assumed to be an enum. If all items in the array are the same type, them enum will be declared to be of that type; otherwise no type will be declared.
-3. Certain properties that match top-level JSON Schema object properties, such as `dependencies`, are hoisted.
+
+1. An array `value` is assumed to be an enum. If all items in the array are the same type, them enum will be declared to be of that type; otherwise no type will be declared.
+2. Certain properties that match top-level JSON Schema object properties, such as `dependencies`, are hoisted.
 
 ### List component
 
-Template:
+#### Template
 
 ```handlebars
 <ul class="list">
@@ -151,12 +149,11 @@ Template:
 </ul>
 ```
 
-JSON schema:
+#### JSON schema
 
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
-  "id": "@list",
   "type": "object",
   "properties": {
     "listItems": {
@@ -188,12 +185,11 @@ JS Shorthand:
 Given a `'property': value` pair:
 
 1. If `value` equals `'array'|'[]'`, then `'property': 'value'` is mapped to `"property": { "type": "array" }`.
-1. If `value` matches `'{type}[]'`, then `'property': 'value'` is mapped to `"property": { "type": "array", "items": { "type": "{type}" } }`.
-
+2. If `value` matches `'{type}[]'`, then `'property': 'value'` is mapped to `"property": { "type": "array", "items": { "type": "{type}" } }`.
 
 ### Badge component
 
-Template:
+#### Template
 
 ```handlebars
 <figure class="badge{{#if modifiers}} {{ modifiers }}{{/if}}">
@@ -205,12 +201,11 @@ Template:
 </figure>
 ```
 
-JSON schema:
+#### JSON schema
 
 ```json
 {
   "$schema": "http://json-schema.org/schema#",
-  "id": "@badge",
   "type": "object",
   "properties": {
     "modifiers": {
@@ -241,7 +236,9 @@ JSON schema:
   "required": ["title"]
 }
 ```
-JS shorthand:
+
+#### JS shorthand
+
 ```javascript
 {
   modifier: 'string',
@@ -257,9 +254,139 @@ JS shorthand:
 
 1. To refer to other components, a component name with an '@' identifier will be expanded to a $ref.
 
+### Complex form units
+Given a Text Input that references another component, which in turns references another component, all of which share a flat data structure, how do we compose the schema?
 
 
-QUESTION 1: should a convention be able to define a non-component ref, similar to <https://metacpan.org/pod/JSON::Schema::Shorthand?> i.e.
+#### Templates
+- `@text-input`:
+
+  ```handlebars
+  {{#> @formunit }}
+    <input placeholder="{{placeholder}}" class="FormUnit-input{{#if inputClass}} {{ inputClass }}{{/if}}" id="{{inputId}}" type="text" />
+  {{/ @formunit }}
+  ```
+
+- `@form-unit`:
+
+  ```handlebars
+  <div class="FormUnit{{#if formUnitClass}} {{ formUnitClass }}{{/if}}">
+    {{#if label}}{{#> @label }}{{label}} {{/ @label}}{{/if}}
+    {{> @partial-block }}
+  </div>
+  ```
+
+- `@label`:
+
+  ```handlebars
+  <label class="FormUnit-label{{#if labelClass}} {{labelClass}}{{/if}}" for="{{inputId}}" {{#if labelId}}id="{{labelId}}"{{/if}}>{{> @partial-block }}{{#if requiredText}} <abbr title="Required" class="FormUnit-required">{{requiredText}}</abbr>{{/if}}</label>
+  ```
+
+#### JSON schemas
+
+- `@text-input`:
+
+  ```json
+  {
+  "$schema": "http://json-schema.org/schema#",
+  "id": "@text-input",
+  "type": "object",
+  "allOf": [{
+      "$ref": "@label"
+    },
+    {
+      "$ref": "@form-unit"
+    },
+    {
+      "properties": {
+        "placeholder": {
+          "type": "string"
+        },
+        "inputClass": {
+          "type": "string",
+          "enum": ["inline", "constrained"]
+        },
+        "inputId": {
+          "type": "string"
+        },
+      }
+    }
+  ],
+  "required": ["inputId"]
+  }
+  ```
+
+- `@form-unit`:
+
+  ```json
+  {
+  "$schema": "http://json-schema.org/schema#",
+  "id": "@form-unit",
+  "type": "object",
+  "properties": {
+    "formUnitClass": {
+      "type": "string",
+      "enum": ["inline", "constrained"]
+    },
+    "label": {
+      "type": "string"
+    },
+    "@partial-block": {
+      "type": "string"
+    }
+  }
+  }
+  ```
+
+- `@label`:
+
+  ```json
+  {
+  "$schema": "http://json-schema.org/schema#",
+  "id": "@label",
+  "type": "object",
+  "properties": {
+    "labelClass": {
+      "type": "string",
+      "enum": ["inline", "block"]
+    },
+    "inputId": {
+      "type": "string"
+    },
+    "labelId": {
+      "type": "string"
+    },
+    "@partial-block": {
+      "type": "string"
+    },
+    "requiredText": {
+      "type": "string"
+    },
+  },
+  "required": ["inputId"]
+  }
+  ```
+
+#### JS shorthand (Text input only)
+```javascript
+{
+  '$include': ['@label', '@form-unit'],
+  placeholder: 'string',
+  inputClass: ['inline', 'constrained'],
+  inputId: {
+    type: 'string',
+    required: true
+  }
+}
+```
+
+`$include` expands the listed ids into an `allOf` expression, and also includes any additional properties listed.
+
+
+
+
+## QUESTIONS:
+1. Should a convention be able to define a non-component ref, similar to <https://metacpan.org/pod/JSON::Schema::Shorthand?> i.e.
 
 ```javascript
 {

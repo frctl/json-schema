@@ -43,7 +43,7 @@ class PropertyGenerator {
       .reduce((m, value) => value, '');
 
     if (check.string(value) && check.emptyString(expansion)) {
-      console.warn(`PropertyGenerator.getExpansionForValue: No token was found for '${value.toString()}'`);
+      console.warn(`PropertyGenerator.getExpansionForValue: No token was found for '${value.toString()}'; reverting to 'default'`);
     }
     expansion = expansion || defaultExpansion;
 
