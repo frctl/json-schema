@@ -4,7 +4,7 @@ const _ = require('lodash');
 
 const assert = check.assert;
 
-const reserved = ['type', 'properties', 'dependencies'];
+const reserved = ['type', 'properties', 'dependencies', '$schema', 'id'];
 
 let generators = new WeakMap();
 
@@ -58,11 +58,11 @@ class Expander {
       })
       .reduce(defaultReduce, expanded);
 
-    return Object.assign(_memo, expanded);
+    return Object.assign(_memo, initial, expanded);
   }
 
   withoutReservedProps(obj) {
-    return _.omit(obj, [].concat(reserved));
+    return _.omit(obj, reserved);
   }
 
   onlyReservedProps(obj) {

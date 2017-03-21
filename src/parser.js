@@ -38,13 +38,14 @@ class Parser {
     if (check.like(shorthand, schemaDuck)) {
       return shorthand;
     }
-    return Object.assign(createBaseSchema(base), expanders.get(this).expandObject(shorthand));
+    return expanders.get(this).expandObject(Object.assign(createBaseSchema(base), shorthand));
   }
 }
 
 function createBaseSchema(base = {}) {
   return Object.assign({
-    $schema: 'http://json-schema.org/schema#'
+    $schema: 'http://json-schema.org/schema#',
+    type: 'object'
   }, base);
 }
 

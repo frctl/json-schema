@@ -514,10 +514,6 @@ describe('Configured Parser', function () {
     });
 
     describe(`successfully expands object with '$include' property when it`, function () {
-
-    });
-
-    describe.skip(`successfully expands object with '$include' property when it`, function () {
       it(`is the only property present`, function () {
         const shorthand = {
           $include: ['@label', '@form-unit']

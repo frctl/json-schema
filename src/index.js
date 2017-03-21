@@ -8,12 +8,14 @@ const enumTokenFactory = require('./tokens/enum');
 const refsTokenFactory = require('./tokens/refs');
 
 const propertiesGenFactory = require('./properties/properties');
-const requiredGenFactory = require('./properties/required');
-const dependenciesGenFactory = require('./properties/dependencies');
-const typeGenFactory = require('./properties/type');
+const requiredGenerator = require('./properties/required');
+const dependenciesGenerator = require('./properties/dependencies');
+const typeGenerator = require('./properties/type');
+const includeGenFactory = require('./properties/include');
 
 module.exports = function () {
-  const propsGenFactory = propertiesGenFactory.bind(null, [defaultTokenFactory, arrayTokenFactory, enumTokenFactory, refsTokenFactory, objectTokenFactory]);
-  const expander = new Expander({generators: [dependenciesGenFactory, requiredGenFactory, propsGenFactory, typeGenFactory]});
+  const propsGenerator = propertiesGenFactory.bind(null, [defaultTokenFactory, arrayTokenFactory, enumTokenFactory, refsTokenFactory, objectTokenFactory]);
+  const includeGenerator = includeGenFactory.bind(null, propsGenerator);
+  const expander = new Expander({generators: [dependenciesGenerator, requiredGenerator, includeGenerator, propsGenerator, typeGenerator]});
   return new Parser({expander});
 };
