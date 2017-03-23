@@ -1,11 +1,11 @@
 const _ = require('lodash');
 
-module.exports = function arrayToken() {
+module.exports = function arrayEnumToken() {
   return {
     match: function match(value) {
       return _.isArray(value);
     },
-    expand: function arrayExpansion(array) {
+    expand: function arrayEnumExpansion(array) {
       const type = array.map(item => typeof item)
         .reduce((lastType, currentType) => lastType === currentType ? currentType : null);
       const typeOb = type ? {

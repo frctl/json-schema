@@ -4,7 +4,13 @@ const _ = require('lodash');
 
 const assert = check.assert;
 
-const reserved = ['type', 'properties', 'dependencies', '$schema', 'id'];
+const reservedAndRepl = ['$id', '$description', '$title', '$default', '$enum', '$type', // generic keywords
+  '$multipleOf', '$minimum', '$maximum', '$exclusiveMinimum', '$exclusiveMaximum', // numeric keywords
+  '$minLength', '$maxLength', '$format', '$pattern', // string keywords
+  '$properties', '$additionalProperties', '$minProperties', '$maxProperties', '$patternProperties', '$required', '$dependencies', // object keywords
+  '$items', '$minItems', '$maxItems', '$uniqueItems' // array keywords
+];
+const reserved = ['$schema'];
 
 let generators = new WeakMap();
 
@@ -44,29 +50,59 @@ class Expander {
     return ob;
   }
 
+  processRecursive(initial, _memo) {
+    return Object.keys(initial).reduce((memo, key) => {
+      const newKey = key.replace('$', '');
+      const value = initial[key];
+      if (check.object(value)) {
+        memo[newKey] = this.processRecursive(value, {});
+      } else {
+        memo[newKey] = initial[key];
+      }
+
+      return memo;
+    }, _memo);
+  }
+
   expandObject(object, _memo = {}) {
-    const initial = this.onlyReservedProps(object);
+    const reserved = this.onlyReservedProps(object);
+    const initial = this.onlyReservedAndReplProps(object);
     const remainder = this.withoutReservedProps(object);
-    let expanded = {};
+
+    const processed = this.processRecursive(initial, {});
+
+    const base = Object.assign({}, reserved, processed);
 
     const additionalProps = generators.get(this);
 
-    expanded = additionalProps
+    let expanded = additionalProps
       .map(generator => {
-        let val = generator.generate(initial, remainder);
+        let val = generator.generate(base, remainder);
         return this.assignProperty({}, generator.key, val);
       })
-      .reduce(defaultReduce, expanded);
+      .reduce(defaultReduce, {});
 
-    return Object.assign(_memo, initial, expanded);
+    // console.log(`
+    //     reserved: ${JSON.stringify(reserved)}
+    //     initial: ${JSON.stringify(initial)}
+    //     processed: ${JSON.stringify(processed)}
+    //     remainder: ${JSON.stringify(remainder)}
+    //     expanded: ${JSON.stringify(expanded)}
+    //     `);
+
+    return Object.assign(_memo, base, expanded);
   }
 
   withoutReservedProps(obj) {
-    return _.omit(obj, reserved);
+    return _.omit(obj, [].concat(reservedAndRepl, reserved));
   }
 
   onlyReservedProps(obj) {
     return _.pick(obj, reserved);
+  }
+
+  onlyReservedAndReplProps(obj) {
+    return _.pick(obj, reservedAndRepl);
   }
 
 }

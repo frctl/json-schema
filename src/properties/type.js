@@ -1,6 +1,6 @@
 function generate(base, remainder) {
-  let type = base.type || 'string';
-  if (Object.keys(remainder).length > 0 && !base.type) {
+  let type = base.type || '';
+  if (Object.keys(remainder).length > 0 && !type) {
     type = 'object';
   }
   return type;

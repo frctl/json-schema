@@ -76,7 +76,7 @@ describe('Parser', function () {
       for (const value of [{}]) {
         const parser = new Parser(basicConfig);
         const expanded = baseSchema({id: '@component'});
-        const result = parser.parse(value, {id: '@component'});
+        const result = parser.parse(value, {$id: '@component'});
         expect(result).to.be.an('object');
         expect(result.id).to.equal(expanded.id);
       }

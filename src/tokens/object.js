@@ -1,5 +1,4 @@
 const check = require('check-types');
-const _ = require('lodash');
 
 module.exports = function objectToken(expandObject) {
   return {

@@ -5,7 +5,7 @@ const Expander = require('./expander');
 const assert = check.assert;
 
 const schemaDuck = {
-  $schema: 'http://json-schema.org/schema#'
+  $schema: 'string'
 };
 
 let expanders = new WeakMap();
@@ -45,7 +45,7 @@ class Parser {
 function createBaseSchema(base = {}) {
   return Object.assign({
     $schema: 'http://json-schema.org/schema#',
-    type: 'object'
+    $type: 'object'
   }, base);
 }
 

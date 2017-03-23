@@ -5,10 +5,10 @@ const defaultReduce = (memo, val) => {
 function generate(base, remainder) {
   return Object.keys(remainder)
     .filter(key => {
-      return remainder[key] && remainder[key].required;
+      return remainder[key] && remainder[key].$required && remainder[key].$required === true;
     })
     .map(key => {
-      delete remainder[key].required;
+      delete remainder[key].$required;
       return key;
     })
     .reduce(defaultReduce, []);
