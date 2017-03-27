@@ -10,15 +10,11 @@ const defaultReduce = (memo, val) => {
 
 let tokens = new WeakMap();
 
-class PropertyGenerator {
+class CustomProperties {
   constructor(opts = {}) {
     this.key = 'properties';
     tokens.set(this, []);
-    assert.function(opts.expandObject);
 
-    if (opts.expandObject) {
-      this.expandObject = opts.expandObject;
-    }
     if (opts.tokens) {
       this.registerTokens(opts.tokens);
     }
@@ -29,11 +25,21 @@ class PropertyGenerator {
   }
 
   registerTokens(tokenOrList) {
-    if (!(check.array.of.function(tokenOrList) || check.function(tokenOrList))) {
-      assert(false, `PropertyGenerator.registerTokens: 'tokenOrList' must be a function or array of functions that return an object with 'match' and 'expand' methods [tokens-invalid]`, TypeError);
-    }
-    let localTokens = [].concat(tokenOrList).map(token => token(this.expandObject));
-    tokens.set(this, tokens.get(this).concat(localTokens));
+    const errorMsg = `CustomProperties.registerTokens: 'tokenOrList' must be an object or array of objects, each with 'match' and 'expand' methods [tokens-invalid]`;
+
+    assert(Boolean(tokenOrList), errorMsg, TypeError);
+    tokenOrList = [].concat(tokenOrList);
+
+    let vals = check.all(tokenOrList.map(gen => {
+      return check.object(gen) && check.all(check.map(gen, {
+        match: check.function,
+        expand: check.function
+      }));
+    }));
+
+    assert(vals, errorMsg, TypeError);
+
+    tokens.set(this, tokens.get(this).concat(tokenOrList));
   }
 
   getExpansionForValue(value, parent) {
@@ -43,7 +49,7 @@ class PropertyGenerator {
       .reduce((m, value) => value, '');
 
     if (check.string(value) && check.emptyString(expansion)) {
-      console.warn(`PropertyGenerator.getExpansionForValue: No token was found for '${value.toString()}'; reverting to 'default'`);
+      console.warn(`CustomProperties.getExpansionForValue: No token was found for '${value.toString()}'; reverting to 'default'`);
     }
     expansion = expansion || defaultExpansion;
 
@@ -63,9 +69,8 @@ class PropertyGenerator {
   }
 }
 
-module.exports = function (tokens, expandObject) {
-  const propertyGenerator = new PropertyGenerator({
-    expandObject,
+module.exports = function ({tokens}) {
+  const propertyGenerator = new CustomProperties({
     tokens
   });
   return propertyGenerator;

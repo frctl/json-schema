@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions */
 const expect = require('@frctl/utils/test').expect;
 
-const getParser = require('../src');
+const getExpander = require('../src');
 const {
   baseExpandedSchema
 } = require('./support/utils');
@@ -1043,8 +1043,8 @@ describe('Configured Parser', function () {
 });
 
 function testParser(shorthand, expected, base = {}) {
-  const parser = getParser();
-  const result = parser.parse(shorthand, base);
+  const expander = getExpander();
+  const result = expander.expand(shorthand, base);
   // console.log(result);
   const expanded = Object.assign({}, baseExpandedSchema(base), expected);
   expect(result).to.deep.equal(expanded);

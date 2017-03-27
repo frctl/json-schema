@@ -35,9 +35,9 @@ function generate(propsExpander, base, remainder) {
   }
 }
 
-module.exports = function (propsExpander, boundObjectExpander) {
+module.exports = function (propsExpander) {
   return {
     key: 'allOf',
-    generate: generate.bind(null, propsExpander(boundObjectExpander))
+    generate: generate.bind(null, propsExpander)
   };
 };

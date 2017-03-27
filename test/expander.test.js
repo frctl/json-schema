@@ -19,7 +19,7 @@ describe('Expander', function () {
   });
   describe('registerGenerators()', function () {
     it('only accepts valid arguments', function () {
-      for (const value of [123, '345', {}, undefined]) {
+      for (const value of [123, '345', function () {}, {}, null, undefined]) {
         const fr = () => {
           const expander = new Expander();
           expander.registerGenerators(value);
@@ -28,19 +28,19 @@ describe('Expander', function () {
       }
       expect(() => {
         const expander = new Expander();
-        expander.registerGenerators(function () {});
+        expander.registerGenerators({key: 'key', generate: function () {}});
       }).to.not.throw();
     });
     it('successfully adds a single valid token', function () {
       const expander = new Expander();
       expect(expander.generatorsLength).to.equal(0);
-      expander.registerGenerators(function () {});
+      expander.registerGenerators({key: 'key', generate: function () {}});
       expect(expander.generatorsLength).to.equal(1);
     });
     it('successfully adds an array of generators', function () {
       const expander = new Expander();
       expect(expander.generatorsLength).to.equal(0);
-      expander.registerGenerators([function () {}, function () {}, function () {}]);
+      expander.registerGenerators([{key: 'key', generate: function () {}}, {key: 'key', generate: function () {}}, {key: 'key', generate: function () {}}]);
       expect(expander.generatorsLength).to.equal(3);
     });
   });

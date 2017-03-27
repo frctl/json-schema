@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions */
 const expect = require('@frctl/utils/test').expect;
 
-const Parser = require('../src/parser');
+const SchemaExpander = require('../src/schema-expander');
 const Expander = require('../src/expander');
 
 const basicExpander = new Expander();
@@ -11,25 +11,25 @@ const basicConfig = {
 
 const {baseSchema} = require('./support/utils');
 
-describe('Parser', function () {
+describe('SchemaExpander', function () {
   describe('constructor', function () {
     it(`only accepts valid config arguments`, function () {
       for (const config of ['string', [], 123, null, undefined]) {
-        const fr = () => (new Parser(config));
+        const fr = () => (new SchemaExpander(config));
         expect(fr).to.throw(TypeError, `[config-invalid]`);
       }
       for (const config of [basicConfig]) {
-        const fr = () => (new Parser(config));
+        const fr = () => (new SchemaExpander(config));
         expect(fr).to.not.throw();
       }
     });
   });
-  describe('parse()', function () {
+  describe('expand()', function () {
     it(`only accepts valid shorthand arguments`, function () {
       const fr = value => {
         return () => {
-          const parser = new Parser(basicConfig);
-          parser.parse(value);
+          const expander = new SchemaExpander(basicConfig);
+          expander.expand(value);
         };
       };
       for (const value of ['string', 123, ['one', 'two']]) {
@@ -43,8 +43,8 @@ describe('Parser', function () {
     it(`only accepts valid base arguments`, function () {
       const fr = value => {
         return () => {
-          const parser = new Parser(basicConfig);
-          parser.parse({}, value);
+          const expander = new SchemaExpander(basicConfig);
+          expander.expand({}, value);
         };
       };
       for (const value of ['value', 123]) {
@@ -56,16 +56,16 @@ describe('Parser', function () {
     });
 
     it(`returns an already qualified Schema unmodified`, function () {
-      const parser = new Parser(basicConfig);
+      const expander = new SchemaExpander(basicConfig);
       let base = baseSchema();
-      const result = parser.parse(base);
+      const result = expander.expand(base);
       expect(result).to.deep.equal(base);
     });
 
     it(`returns a valid but empty Schema, if provided with a valid but empty argument`, function () {
       for (const value of [{}]) {
-        const parser = new Parser(basicConfig);
-        const result = parser.parse(value);
+        const expander = new SchemaExpander(basicConfig);
+        const result = expander.expand(value);
         const expanded = baseSchema();
         expect(result).to.be.an('object');
         expect(result.$schema).to.equal(expanded.$schema);
@@ -74,9 +74,9 @@ describe('Parser', function () {
 
     it(`assigns 'id' correctly`, function () {
       for (const value of [{}]) {
-        const parser = new Parser(basicConfig);
+        const expander = new SchemaExpander(basicConfig);
         const expanded = baseSchema({id: '@component'});
-        const result = parser.parse(value, {$id: '@component'});
+        const result = expander.expand(value, {$id: '@component'});
         expect(result).to.be.an('object');
         expect(result.id).to.equal(expanded.id);
       }
@@ -84,10 +84,10 @@ describe('Parser', function () {
 
     it(`assigns '$schema' correctly`, function () {
       for (const value of [{}]) {
-        const parser = new Parser(basicConfig);
+        const expander = new SchemaExpander(basicConfig);
         const expanded = baseSchema();
         expanded.$schema = 'http://json-schema.org/hyper-schema#';
-        const result = parser.parse(value, {$schema: 'http://json-schema.org/hyper-schema#'});
+        const result = expander.expand(value, {$schema: 'http://json-schema.org/hyper-schema#'});
         expect(result).to.be.an('object');
         expect(result.$schema).to.equal(expanded.$schema);
       }

@@ -4,7 +4,7 @@ const _ = require('lodash');
 
 const assert = check.assert;
 
-const reservedAndRepl = ['$id', '$description', '$title', '$default', '$enum', '$type', // generic keywords
+const namespaced = ['$id', '$description', '$title', '$default', '$enum', '$type', // generic keywords
   '$multipleOf', '$minimum', '$maximum', '$exclusiveMinimum', '$exclusiveMaximum', // numeric keywords
   '$minLength', '$maxLength', '$format', '$pattern', // string keywords
   '$properties', '$additionalProperties', '$minProperties', '$maxProperties', '$patternProperties', '$required', '$dependencies', // object keywords
@@ -31,12 +31,21 @@ class Expander {
   }
 
   registerGenerators(generatorOrList) {
-    if (!(check.array.of.function(generatorOrList) || check.function(generatorOrList))) {
-      assert(false, `Expander.registerGenerators: 'generatorOrList' must be a function or array of functions that return an object with a 'key' property and 'generate' method [generators-invalid]`, TypeError);
-    }
-    let boundExpander = this.expandObject.bind(this);
-    let localGenerators = [].concat(generatorOrList).map(generator => generator(boundExpander));
-    generators.set(this, generators.get(this).concat(localGenerators));
+    const errorMsg = `Expander.registerGenerators: 'generatorOrList' must be an object or array of objects, each with a 'key' property and 'generate' method [generators-invalid]`;
+
+    assert(Boolean(generatorOrList), errorMsg, TypeError);
+    generatorOrList = [].concat(generatorOrList);
+
+    let vals = check.all(generatorOrList.map(gen => {
+      return check.object(gen) && check.all(check.map(gen, {
+        key: check.string,
+        generate: check.function
+      }));
+    }));
+
+    assert(vals, errorMsg, TypeError);
+
+    generators.set(this, generators.get(this).concat(generatorOrList));
   }
 
   getBaseObject(base) {
@@ -72,7 +81,9 @@ class Expander {
       return memo;
     }, {});
   }
-
+  getExpandMethod() {
+    return this.expandObject.bind(this);
+  }
   expandObject(object, _memo = {}) {
     const reserved = this.onlyReservedProps(object);
     const initial = this.onlyReservedAndReplProps(object);
@@ -91,19 +102,11 @@ class Expander {
       })
       .reduce(defaultReduce, {});
 
-    // console.log(`
-    //     reserved: ${JSON.stringify(reserved)}
-    //     initial: ${JSON.stringify(initial)}
-    //     processed: ${JSON.stringify(processed)}
-    //     remainder: ${JSON.stringify(remainder)}
-    //     expanded: ${JSON.stringify(expanded)}
-    //     `);
-
     return Object.assign(_memo, base, expanded);
   }
 
   withoutReservedProps(obj) {
-    return _.omit(obj, [].concat(reservedAndRepl, reserved));
+    return _.omit(obj, [].concat(namespaced, reserved));
   }
 
   onlyReservedProps(obj) {
@@ -111,7 +114,7 @@ class Expander {
   }
 
   onlyReservedAndReplProps(obj) {
-    return _.pick(obj, reservedAndRepl);
+    return _.pick(obj, namespaced);
   }
 
 }
