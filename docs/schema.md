@@ -46,7 +46,7 @@ into JSON Schema:
   "$schema": "http://json-schema.org/schema#",
   "type": "object",
   "properties": {
-    "modifiers": {
+    "modifier": {
       "type": "string"
     },
     "text": {
@@ -66,7 +66,7 @@ into JSON Schema:
 2. Each `'property': value` pair is assumed to represent an item on `"properties"`.
 
   1. if `value` is a `string`, `'property': 'value'` is mapped to `"property": { "type": "value" }`,
-  2. if `value` is an `object`, `'property': value` is mapped to `"property": value`. If the `'type'` property is absent from `value`, `"string"` is inferred.
+  2. if `value` is an `object`, `'property': value` is mapped to `"property": value`. <del>If the `'type'` property is absent from `value`, `"string"` is inferred.</del>
 
 ### Button component
 
@@ -128,8 +128,14 @@ into JSON Schema:
   disabled: 'boolean',
   modifiers: ['large', 'small', 'primary'],
   iconName: 'string',
-  iconClasses: { dependencies: 'iconName' },
-  text: { required: true },
+  iconClasses: {
+    $dependencies: 'iconName',
+    $type: 'string'
+  },
+  text: {
+    $required: true,
+    $type: 'string'
+  },
   href: 'string'
 }
 ```
@@ -241,24 +247,28 @@ Given a `'property': value` pair:
 
 ```javascript
 {
-  modifier: 'string',
+  modifiers: 'string',
   pill: '@pill',
   img: {
     modifiers: ['primary', 'secondary'],
     src: 'string',
     alt: 'string'
   },
-  title: { required: true }
+  title: {
+    $required: true,
+    $type: 'string'
+  }
 }
 ```
 
 1. To refer to other components, a component name with an '@' identifier will be expanded to a $ref.
 
 ### Complex form units
+
 Given a Text Input that references another component, which in turns references another component, all of which share a flat data structure, how do we compose the schema?
 
-
 #### Templates
+
 - `@text-input`:
 
   ```handlebars
@@ -368,24 +378,23 @@ Given a Text Input that references another component, which in turns references 
   ```
 
 #### JS shorthand (Text input only)
+
 ```javascript
 {
-  '$include': ['@label', '@form-unit'],
+  $include: ['@label', '@form-unit'],
   placeholder: 'string',
   inputClass: ['inline', 'constrained'],
   inputId: {
-    type: 'string',
-    required: true
+    $type: 'string',
+    $required: true
   }
 }
 ```
 
 `$include` expands the listed ids into an `allOf` expression, and also includes any additional properties listed.
 
-
-
-
 ## QUESTIONS:
+
 1. Should a convention be able to define a non-component ref, similar to <https://metacpan.org/pod/JSON::Schema::Shorthand?> i.e.
 
 ```javascript
@@ -393,3 +402,4 @@ Given a Text Input that references another component, which in turns references 
   pill: '#/units/pill'
 }
 ```
+2. Should undefined 'types' be inferred, and if so, what should the value be?

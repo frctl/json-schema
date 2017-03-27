@@ -6,7 +6,16 @@ const Expander = require('../src/expander');
 
 describe('Expander', function () {
   describe('constructor', function () {
-    it(`only accepts valid arguments`);
+    it(`only accepts valid 'opts' arguments`, function () {
+      for (const opts of ['string', [], 123]) {
+        const fr = () => (new Expander(opts));
+        expect(fr).to.throw(TypeError, `[opts-invalid]`);
+      }
+      for (const opts of [{}, null, undefined]) {
+        const fr = () => (new Expander(opts));
+        expect(fr).to.not.throw();
+      }
+    });
   });
   describe('registerGenerators()', function () {
     it('only accepts valid arguments', function () {

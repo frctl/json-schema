@@ -464,7 +464,8 @@ describe('Configured Parser', function () {
           },
           {
             $ref: '@form-unit'
-          }]
+          }
+          ]
         };
 
         testParser(shorthand, expanded);
@@ -501,11 +502,35 @@ describe('Configured Parser', function () {
                 type: 'string'
               }
             }
-          }],
+          }
+          ],
           required: ['inputId']
         };
 
         testParser(shorthand, expanded, {});
+      });
+      it(`is nested`, function () {
+        const shorthand = {
+          label: {
+            $include: ['@label', '@form-unit']
+          }
+        };
+
+        const expanded = {
+          properties: {
+            label: {
+              allOf: [{
+                $ref: '@label'
+              },
+              {
+                $ref: '@form-unit'
+              }
+              ]
+            }
+          }
+        };
+
+        testParser(shorthand, expanded);
       });
     });
 
@@ -639,6 +664,7 @@ describe('Configured Parser', function () {
         testParser(shorthand, expanded);
       });
     });
+
     describe(`expands object with 'object' JSON Schema keywords when keyword`, function () {
       it(`is 'properties', 'additionalProperties', 'minProperties', 'maxProperties', 'patternProperties', 'dependencies', or 'required'`, function () {
         const shorthand = {
@@ -667,7 +693,6 @@ describe('Configured Parser', function () {
           }
         };
         const expanded = {
-
           properties: {
             label: {
               type: 'string'
@@ -692,7 +717,6 @@ describe('Configured Parser', function () {
           dependencies: {
             modifiers: ['label']
           }
-
         };
         testParser(shorthand, expanded);
       });
@@ -774,8 +798,246 @@ describe('Configured Parser', function () {
         testParser(shorthand, expanded);
       });
     });
+
     describe(`expands object with 'array' JSON Schema keywords when keyword`, function () {
-      it(`is 'items', 'minItems', 'maxItems', or 'uniqueItems'`);
+      it(`is 'items', 'minItems', 'maxItems', or 'uniqueItems'`, function () {
+        const shorthand = {
+          modifiers: {
+            $type: 'array',
+            $items: {
+              $type: 'string'
+            },
+            $minItems: 2,
+            $maxItems: 5,
+            $uniqueItems: true
+          }
+        };
+        const expanded = {
+          properties: {
+            modifiers: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              minItems: 2,
+              maxItems: 5,
+              uniqueItems: true
+            }
+          }
+        };
+        testParser(shorthand, expanded);
+      });
+      it(`has tuple values on 'items'`, function () {
+        const shorthand = {
+          modifiers: {
+            $type: 'array',
+            $items: [{
+              $type: 'number'
+            },
+            {
+              $type: 'string'
+            },
+            {
+              $type: 'string',
+              $enum: ['Street', 'Avenue', 'Boulevard']
+            }
+            ]
+          }
+        };
+        const expanded = {
+          properties: {
+            modifiers: {
+              type: 'array',
+              items: [{
+                type: 'number'
+              },
+              {
+                type: 'string'
+              },
+              {
+                type: 'string',
+                enum: ['Street', 'Avenue', 'Boulevard']
+              }
+              ]
+            }
+          }
+        };
+        testParser(shorthand, expanded);
+      });
+    });
+  });
+
+  describe(`Schema examples`, function () {
+    it(`expands a 'Pill' component`, function () {
+      const shorthand = {
+        modifier: 'string',
+        text: 'string'
+      };
+
+      const expanded = {
+        properties: {
+          modifier: {
+            type: 'string'
+          },
+          text: {
+            type: 'string'
+          }
+        }
+      };
+      testParser(shorthand, expanded);
+    });
+    it(`expands a 'Button' component`, function () {
+      const shorthand = {
+        disabled: 'boolean',
+        modifiers: ['large', 'small', 'primary'],
+        iconName: 'string',
+        iconClasses: {
+          $dependencies: 'iconName',
+          $type: 'string'
+        },
+        text: {
+          $required: true,
+          $type: 'string'
+        },
+        href: 'string'
+      };
+      const expanded = {
+        properties: {
+          disabled: {
+            type: 'boolean'
+          },
+          modifiers: {
+            type: 'string',
+            enum: ['large', 'small', 'primary']
+          },
+          iconName: {
+            type: 'string'
+          },
+          iconClasses: {
+            type: 'string'
+          },
+          text: {
+            type: 'string'
+          },
+          href: {
+            type: 'string'
+          }
+        },
+        required: ['text'],
+        dependencies: {
+          iconClasses: ['iconName']
+        }
+      };
+
+      testParser(shorthand, expanded);
+    });
+    it(`expands a 'List' component`, function () {
+      const shorthand = {
+        listItems: 'string[]',
+        otherList: '[]',
+        finalList: 'array'
+      };
+
+      const expanded = {
+        properties: {
+          listItems: {
+            type: 'array',
+            items: {
+              type: 'string'
+            }
+          },
+          otherList: {
+            type: 'array'
+          },
+          finalList: {
+            type: 'array'
+          }
+        }
+      };
+      testParser(shorthand, expanded);
+    });
+    it(`expands a 'Badge' component`, function () {
+      const shorthand = {
+        modifiers: 'string',
+        pill: '@pill',
+        img: {
+          modifiers: ['primary', 'secondary'],
+          src: 'string',
+          alt: 'string'
+        },
+        title: {
+          $required: true,
+          $type: 'string'
+        }
+      };
+
+      const expanded = {
+        properties: {
+          modifiers: {
+            type: 'string'
+          },
+          img: {
+            type: 'object',
+            properties: {
+              modifiers: {
+                type: 'string',
+                enum: ['primary', 'secondary']
+              },
+              src: {
+                type: 'string'
+              },
+              alt: {
+                type: 'string'
+              }
+            }
+          },
+          pill: {
+            $ref: '@pill'
+          },
+          title: {
+            type: 'string'
+          }
+        },
+        required: ['title']
+      };
+      testParser(shorthand, expanded);
+    });
+    it(`expands a 'Text Input' component`, function () {
+      const shorthand = {
+        $include: ['@label', '@form-unit'],
+        placeholder: 'string',
+        inputClass: ['inline', 'constrained'],
+        inputId: {
+          $type: 'string',
+          $required: true
+        }
+      };
+
+      const expanded = {
+        allOf: [{
+          $ref: '@label'
+        },
+        {
+          $ref: '@form-unit'
+        },
+        {
+          properties: {
+            placeholder: {
+              type: 'string'
+            },
+            inputClass: {
+              type: 'string',
+              enum: ['inline', 'constrained']
+            },
+            inputId: {
+              type: 'string'
+            }
+          }
+        }
+        ],
+        required: ['inputId']
+      };
+      testParser(shorthand, expanded);
     });
   });
 });

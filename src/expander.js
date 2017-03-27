@@ -17,9 +17,11 @@ let generators = new WeakMap();
 class Expander {
 
   constructor(opts = {}) {
+    assert.maybe.object(opts, `Expander.constructor: 'opts' must be an object [opts-invalid]`, TypeError);
+
     generators.set(this, []);
 
-    if (opts.generators) {
+    if (opts && opts.generators) {
       this.registerGenerators(opts.generators);
     }
   }
@@ -50,18 +52,25 @@ class Expander {
     return ob;
   }
 
-  processRecursive(initial, _memo) {
+  processRecursive(initial) {
     return Object.keys(initial).reduce((memo, key) => {
       const newKey = key.replace('$', '');
       const value = initial[key];
       if (check.object(value)) {
-        memo[newKey] = this.processRecursive(value, {});
+        memo[newKey] = this.processRecursive(value);
+      } else if (check.array(value)) {
+        memo[newKey] = value.map(item => {
+          if (check.object(item)) {
+            return this.processRecursive(item);
+          }
+          return item;
+        });
       } else {
-        memo[newKey] = initial[key];
+        memo[newKey] = value;
       }
 
       return memo;
-    }, _memo);
+    }, {});
   }
 
   expandObject(object, _memo = {}) {
@@ -69,7 +78,7 @@ class Expander {
     const initial = this.onlyReservedAndReplProps(object);
     const remainder = this.withoutReservedProps(object);
 
-    const processed = this.processRecursive(initial, {});
+    const processed = this.processRecursive(initial);
 
     const base = Object.assign({}, reserved, processed);
 
