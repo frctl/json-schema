@@ -6,8 +6,8 @@
   "repository": "https://github.com/frctl/json-schema",
   "bugs": "https://github.com/frctl/json-schema/issues",
   "contributors": [
-    "Mark Perkins <mark@allmarkedup.com> (http://allmarkedup.com)",
-    "Danielle Huntrods <danielle.huntrods@clearleft.com> (http://clearleft.com)"
+    "Danielle Huntrods <danielle.huntrods@clearleft.com> (http://clearleft.com)",
+    "Mark Perkins <mark@allmarkedup.com> (http://allmarkedup.com)"
   ],
   "license": "MIT",
   "engines": {

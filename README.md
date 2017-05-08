@@ -15,9 +15,9 @@ This is a parser that generates a fully qualified [JSON Schema](http://json-sche
 
 ```js
 
-const jsonSchema = require('@frctl/json-schema');
+const schemaExpander = require('@frctl/json-schema');
 
-const schema = jsonSchema.parse(["label", "modifier"]);
+const schema = schemaExpander.expand({ title: 'string', modifier: 'string' });
 
 console.log(schema);
 
@@ -28,7 +28,7 @@ Outputs:
   "$schema": "http://json-schema.org/schema#",
   "type": "object",
   "properties": {
-    "label": {
+    "title": {
       "type": "string"
     },
     "modifier": {
@@ -48,7 +48,7 @@ npm i @frctl/json-schema --save
 
 ## API
 
-### .parse(schema)
+### .expand(schema)
 
 Returns a fully qualified JSON schema.
 
@@ -56,7 +56,7 @@ Returns a fully qualified JSON schema.
 
 
 ```js
-const schema = jsonSchema.parse(["label", "modifier"]);
+const schema = jsonSchema.parse({ title: 'string', modifier: 'string' });
 ```
 
 - If a valid condensed schema is provided, a converted, fully qualified schema will be returned.
