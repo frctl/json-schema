@@ -1,7 +1,7 @@
 {
   "name": "@frctl/json-schema",
   "description": "Parser to convert condensed JSON schemas to standard ones.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "homepage": "https://github.com/frctl/json-schema",
   "repository": "https://github.com/frctl/json-schema",
   "bugs": "https://github.com/frctl/json-schema/issues",
